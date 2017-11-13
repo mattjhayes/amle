@@ -1,0 +1,43 @@
+---
+#*** Configuration policy for Automated Machine Learning Environment (AMLE).
+#*** Simple ML Traffic Classification Test
+#
+#*** Written in YAML
+#
+datasets:
+    - name: training_dataset
+      source:
+          file: data/samples/network_tc/data_set_2.csv
+      transform:
+        - trim_to_rows:
+            - brianfm.streamon.fm
+            - www.victoria.ac.nz/ecs
+        - trim_to_columns:
+            - type
+            - packet_size_7
+            - packet_direction_6
+            - packet_direction_7
+            - packet_direction_8
+            - packet_direction_9
+            - packet_direction_10
+        - rescale:
+            - column: packet_size_7
+              min: 64
+              max: 1518
+        - translate:
+            - column: type
+              streaming: 1
+              browsing: 0
+        - set_output_columns:
+            - type
+        - display: print
+#
+algorithms:
+    # ML Algorithms to load
+    - name: ANN_simple_2_layer
+      code: ml_1
+#
+experiments:
+    - name: experiment_1_training
+      training_data: training_dataset
+      algorithm: ANN_simple_2_layer

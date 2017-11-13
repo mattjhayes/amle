@@ -1,0 +1,47 @@
+---
+#*** Config for AMLE
+#*** Written in YAML
+#    (that rhymes!)
+#
+# General settings only, nothing project-specific here...
+#
+#========== SYSLOG ==================================
+#*** Set to 1 if want to log to syslog:
+syslog_enabled: 0
+#
+#*** Where to send syslog (use localhost to keep on-box):
+loghost: localhost
+#
+#*** Port number to send on:
+logport: 514
+#
+#*** Facility to use:
+logfacility: 19
+#
+#*** Syslog Log Format:
+syslog_format: "sev=%(levelname)s module=%(module)s func=%(funcName)s %(message)s"
+#
+#*** Syslog Logging Levels Per Module
+#*** Values can be one of CRITICAL|ERROR|WARNING|INFO|DEBUG:
+amle_logging_level_s: INFO
+config_logging_level_s: INFO
+policy_logging_level_s: INFO
+dataset_logging_level_s: INFO
+#
+#========== CONSOLE LOGGING =========================
+#*** Set to 1 if want to log to console:
+console_log_enabled: 1
+#
+#*** Set to 1 if you want colorised logs in terminal:
+coloredlogs_enabled: 1
+#
+#*** Console Log Format:
+console_format: "%(asctime)s %(module)s[%(process)d] %(funcName)s %(levelname)s %(message)s"
+#
+#*** Console Logging Levels Per Module
+#*** Values can be one of CRITICAL|ERROR|WARNING|INFO|DEBUG:
+amle_logging_level_c: DEBUG
+config_logging_level_c: DEBUG
+policy_logging_level_c: DEBUG
+dataset_logging_level_c: DEBUG
+#

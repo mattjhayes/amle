@@ -133,11 +133,21 @@ class AMLE(BaseClass):
             dset = dataset.DataSet(logger)
             dset.ingest(policy_dataset['source']['file'])
             #*** Run transforms:
-
+            for tform in policy_dataset['transform']:
+                self.logger.debug("transform is %s", tform)
+                if 'trim_to_rows' in tform:
+                    for row in tform['trim_to_rows']:
+                        for key in row:
+                            dset.trim_to_rows(key, row[key])
+                elif 'trim_to_columns' in tform:
+                    dset.trim_to_columns(tform['trim_to_columns'])
+                
             # TBD
 
             #*** Add to datasets list:
             self.datasets.append(dset)
+            
+            dset.display()
 
 
 def print_help():

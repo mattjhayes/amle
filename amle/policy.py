@@ -142,10 +142,3 @@ class Policy(BaseClass):
             result.append(dataset)
         return result
 
-    def get_transforms(self, dataset_name):
-        """
-        Return a list of with embedded dictionaries of 
-        """
-        # TBD...
-        return 
-

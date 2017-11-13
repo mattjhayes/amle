@@ -10,8 +10,9 @@ datasets:
           file: data/samples/network_tc/data_set_2.csv
       transform:
         - trim_to_rows:
-            - brianfm.streamon.fm
-            - www.victoria.ac.nz/ecs
+            - test:
+                - brianfm.streamon.fm
+                - www.victoria.ac.nz/ecs
         - trim_to_columns:
             - type
             - packet_size_7

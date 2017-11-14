@@ -91,7 +91,7 @@ class DataSet(object):
     def translate(self, column_name, value_mapping):
         """
         Go through all values in a column replacing any occurences
-        of value_original with value_xlate
+        of key in value_mapping dictionary with corresponding value
         """
         self.logger.debug("Translating column_name=%s values=%s",
                                                     column_name, value_mapping)

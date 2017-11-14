@@ -141,7 +141,14 @@ class AMLE(BaseClass):
                             dset.trim_to_rows(key, row[key])
                 elif 'trim_to_columns' in tform:
                     dset.trim_to_columns(tform['trim_to_columns'])
-                
+                elif 'rescale' in tform:
+                    rdict = tform['rescale'][0]
+                    dset.rescale(rdict['column'], rdict['min'], rdict['max'])
+                elif 'translate' in tform:
+                    rlist = tform['translate']
+                    dset.translate(rlist[0]['column'], rlist[1]['values'])
+
+
             # TBD
 
             #*** Add to datasets list:

@@ -12,12 +12,13 @@
 # limitations under the License.
 
 """
-The dataset module provides an abstraction for 
+The dataset module provides an abstraction for
 sets of data, primarily aimed at use in machine
 learning (ML).
 """
 
 import os
+import sys
 
 #*** CSV library:
 import csv
@@ -25,12 +26,12 @@ import csv
 #*** Ordered Dictionaries:
 from collections import OrderedDict
 
-#*** numpy for ML:
-from numpy import exp, asarray, array, random, dot, matrix, float32
+#*** numpy for mathematical functions:
+from numpy import array
 
 class DataSet(object):
     """
-    Represents a set of ML data with methods to ingest, 
+    Represents a set of ML data with methods to ingest,
     manipulate (i.e. preprocess) and extract
     """
     def __init__(self, logger):
@@ -42,6 +43,12 @@ class DataSet(object):
         self.data = []
         #*** Subset of data that contains column names for output data:
         self.output_columns = []
+
+    def get_data(self):
+        """
+        Return data in native format
+        """
+        return self.data
 
     def set_output_columns(self, output_columns):
         """
@@ -74,22 +81,24 @@ class DataSet(object):
         else:
             self.logger.critical("Dataset=%s not found, exiting", fullpathname)
             sys.exit()
-        with open(fullpathname) as filehandle:  
+        with open(fullpathname) as filehandle:
             reader = csv.DictReader(filehandle)
             for row in reader:
                 sorted_row = OrderedDict(sorted(row.items(),
                             key=lambda item: reader.fieldnames.index(item[0])))
                 self.data.append(sorted_row)
 
-    def translate(self, column_name, value_original, value_xlate):
+    def translate(self, column_name, value_mapping):
         """
         Go through all values in a column replacing any occurences
         of value_original with value_xlate
         """
+        self.logger.debug("Translating column_name=%s values=%s",
+                                                    column_name, value_mapping)
         result = []
         for row in self.data:
-            if row[column_name] == value_original:
-                row[column_name] = value_xlate
+            if row[column_name] in value_mapping:
+                row[column_name] = value_mapping[row[column_name]]
             result.append(row)
         self.data = result
 
@@ -99,6 +108,7 @@ class DataSet(object):
         retain and trim the internal representation of the training
         data to just those columns
         """
+        self.logger.debug("Trimming dataset to only column_name=%s", fields)
         result = []
         for row in self.data:
             row_result = OrderedDict()
@@ -113,6 +123,8 @@ class DataSet(object):
         Passed a key (column name) and list of fields (column values)
         match rows that should be retained and remove other rows
         """
+        self.logger.debug("Trimming dataset to where column_name=%s value=%s",
+                                                                   key, fields)
         result = []
         for row in self.data:
             for field in fields:
@@ -168,6 +180,8 @@ class DataSet(object):
         0 and 1. Uses rescaling formula:
         x` = (x - min(x)) / (max(x) - min(x))
         """
+        self.logger.debug("Rescaling dataset column_name=%s min=%s max=%s",
+                                                     column_name, min_x, max_x)
         result = []
         for row in self.data:
             row[column_name] = \

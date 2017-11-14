@@ -27,8 +27,9 @@ datasets:
               max: 1518
         - translate:
             - column: type
-              streaming: 1
-              browsing: 0
+            - values:
+                streaming: 1
+                browsing: 0
         - set_output_columns:
             - type
         - display: print

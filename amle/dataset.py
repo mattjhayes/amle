@@ -39,8 +39,10 @@ class DataSet(object):
         Initialise the class
         """
         self.logger = logger
+        #*** Name for the dataset:
+        self._name = ""
         #*** List of dictionaries (rows) that holds the data:
-        self.data = []
+        self._data = []
         #*** Subset of data that contains column names for output data:
         self.output_columns = []
 
@@ -48,7 +50,7 @@ class DataSet(object):
         """
         Return data in native format
         """
-        return self.data
+        return self._data
 
     def set_output_columns(self, output_columns):
         """
@@ -56,14 +58,27 @@ class DataSet(object):
         (i.e. what columns contain the expected answer(s)
         Pass it a list of output column names
         """
+        self.logger.debug("Setting output_columns=%s", output_columns)
         self.output_columns = output_columns
 
-    def display(self):
+    def set_name(self, name):
         """
-        Print data to screen
+        Set the name for the dataset
         """
-        for row in self.data:
-            print row
+        self._name = name
+
+    def display(self, display_type):
+        """
+        Display data
+        """
+        if display_type == 'print':
+            print "\nDataset: " + self._name + "\n"
+            for row in self._data:
+                print row
+        else:
+            logger.critical("Unsupported display_type=%s, exiting...",
+                                                                  display_type)
+            sys.exit()
 
     def ingest(self, filename):
         """
@@ -73,7 +88,7 @@ class DataSet(object):
         in row dictionaries. Example row:
         {'dataset': 'ML', 'min_interpacket_interval': '0.001'}
         """
-        self.data = []
+        self._data = []
         working_directory = os.path.dirname(__file__)
         fullpathname = os.path.join(working_directory, filename)
         if os.path.isfile(fullpathname):
@@ -86,7 +101,7 @@ class DataSet(object):
             for row in reader:
                 sorted_row = OrderedDict(sorted(row.items(),
                             key=lambda item: reader.fieldnames.index(item[0])))
-                self.data.append(sorted_row)
+                self._data.append(sorted_row)
 
     def translate(self, column_name, value_mapping):
         """
@@ -96,11 +111,11 @@ class DataSet(object):
         self.logger.debug("Translating column_name=%s values=%s",
                                                     column_name, value_mapping)
         result = []
-        for row in self.data:
+        for row in self._data:
             if row[column_name] in value_mapping:
                 row[column_name] = value_mapping[row[column_name]]
             result.append(row)
-        self.data = result
+        self._data = result
 
     def trim_to_columns(self, fields):
         """
@@ -110,13 +125,13 @@ class DataSet(object):
         """
         self.logger.debug("Trimming dataset to only column_name=%s", fields)
         result = []
-        for row in self.data:
+        for row in self._data:
             row_result = OrderedDict()
             for row_item_key in row:
                 if row_item_key in fields:
                     row_result[row_item_key] = row[row_item_key]
             result.append(row_result)
-        self.data = result
+        self._data = result
 
     def trim_to_rows(self, key, fields):
         """
@@ -126,11 +141,11 @@ class DataSet(object):
         self.logger.debug("Trimming dataset to where column_name=%s value=%s",
                                                                    key, fields)
         result = []
-        for row in self.data:
+        for row in self._data:
             for field in fields:
                 if field == row[key]:
                     result.append(row)
-        self.data = result
+        self._data = result
 
     def inputs_array(self):
         """
@@ -139,7 +154,7 @@ class DataSet(object):
         """
         #*** Create a subset without the output column(s):
         data_input_subset = []
-        for row in self.data:
+        for row in self._data:
             row_result = OrderedDict()
             for row_item_key in row:
                 if row_item_key not in self.output_columns:
@@ -160,7 +175,7 @@ class DataSet(object):
         """
         #*** Create a subset without the input column(s):
         data_output_subset = []
-        for row in self.data:
+        for row in self._data:
             row_result = OrderedDict()
             for row_item_key in row:
                 if row_item_key in self.output_columns:
@@ -183,8 +198,8 @@ class DataSet(object):
         self.logger.debug("Rescaling dataset column_name=%s min=%s max=%s",
                                                      column_name, min_x, max_x)
         result = []
-        for row in self.data:
+        for row in self._data:
             row[column_name] = \
                             (float(row[column_name]) - min_x) / (max_x - min_x)
             result.append(row)
-        self.data = result
+        self._data = result

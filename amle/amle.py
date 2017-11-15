@@ -113,14 +113,16 @@ class AMLE(BaseClass):
 
         #*** Must have a policy file specified:
         if not self.project_directory:
-            logger.critical('No project directory specified, exiting')
+            logger.critical("No project directory specified, exiting")
             sys.exit()
 
         #*** Instantiate Module Classes:
         self.policy = policy.Policy(self.config, self.project_directory)
 
-        #*** List to hold dataset objects:
-        self.datasets = []
+        #*** Dictionary to hold dataset objects:
+        self._datasets = {}
+        #*** Dictionary to hold algorithm objects:
+        self._algorithms = {}
 
     def run(self):
         """
@@ -131,30 +133,49 @@ class AMLE(BaseClass):
         for policy_dataset in policy_datasets:
             #*** Create dataset object and ingest data from file:
             dset = dataset.DataSet(logger)
+            dset.set_name(policy_dataset['name'])
             dset.ingest(policy_dataset['source']['file'])
-            #*** Run transforms:
-            for tform in policy_dataset['transform']:
-                self.logger.debug("transform is %s", tform)
-                if 'trim_to_rows' in tform:
-                    for row in tform['trim_to_rows']:
-                        for key in row:
-                            dset.trim_to_rows(key, row[key])
-                elif 'trim_to_columns' in tform:
-                    dset.trim_to_columns(tform['trim_to_columns'])
-                elif 'rescale' in tform:
-                    rdict = tform['rescale'][0]
-                    dset.rescale(rdict['column'], rdict['min'], rdict['max'])
-                elif 'translate' in tform:
-                    rlist = tform['translate']
-                    dset.translate(rlist[0]['column'], rlist[1]['values'])
+            #*** Run transforms to process dataset into right form:
+            self.transform(dset, policy_dataset['transform'])
+            #*** Add dataset to datasets dictionary:
+            self._datasets[policy_dataset['name']] = dset
+        #*** Load algorithms:
+        policy_algorithms = self.policy.get_algorithms()
+        for policy_algorithm in policy_algorithms:
+            pass
 
+        #*** Now run experiments:
+        
 
-            # TBD
-
-            #*** Add to datasets list:
-            self.datasets.append(dset)
+    def transform(self, dset, transform_policy):
+        """
+        Passed a dataset object and relevant transforms to run on it.
+        Run the transforms in the dataset object
+        """
+        self.logger.debug("Running transforms on dataset")
+        for tform in transform_policy:
+            self.logger.debug("transform is %s", tform)
+            if 'trim_to_rows' in tform:
+                for row in tform['trim_to_rows']:
+                    for key in row:
+                        dset.trim_to_rows(key, row[key])
+            elif 'trim_to_columns' in tform:
+                dset.trim_to_columns(tform['trim_to_columns'])
+            elif 'rescale' in tform:
+                rdict = tform['rescale'][0]
+                dset.rescale(rdict['column'], rdict['min'], rdict['max'])
+            elif 'translate' in tform:
+                rlist = tform['translate']
+                dset.translate(rlist[0]['column'], rlist[1]['values'])
+            elif 'set_output_columns' in tform:
+                dset.set_output_columns(tform['set_output_columns'])
+            elif 'display' in tform:
+                dset.display(tform['display'])
+            else:
+                self.logger.critical("Unsupported transform=%s, exiting...",
+                                                                         tform)
+                sys.exit()
             
-            dset.display()
 
 
 def print_help():

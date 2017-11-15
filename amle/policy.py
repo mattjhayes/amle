@@ -142,3 +142,11 @@ class Policy(BaseClass):
             result.append(dataset)
         return result
 
+    def get_algorithms(self):
+        """
+        Return a list of policy algorithms
+        """
+        result = []
+        for algorithm in self.policy['algorithms']:
+            result.append(algorithm)
+        return result

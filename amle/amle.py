@@ -53,6 +53,11 @@ import sys, getopt
 import logging
 import coloredlogs
 
+import traceback
+
+#*** For dynamic importing of modules:
+import importlib
+
 #*** AMLE project imports:
 import config
 import policy
@@ -142,10 +147,15 @@ class AMLE(BaseClass):
         #*** Load algorithms:
         policy_algorithms = self.policy.get_algorithms()
         for policy_algorithm in policy_algorithms:
-            pass
+            alg = self.load_algorithm(policy_algorithm['code'])
+            self._algorithms[policy_algorithm['name']] = alg
 
         #*** Now run experiments:
         
+        # TEMP:
+        dset = self._datasets['training_dataset']
+        algr = self._algorithms['ANN_simple_2_layer'](self.logger)
+        algr.run(dset.inputs_array(), dset.outputs_array())
 
     def transform(self, dset, transform_policy):
         """
@@ -175,8 +185,35 @@ class AMLE(BaseClass):
                 self.logger.critical("Unsupported transform=%s, exiting...",
                                                                          tform)
                 sys.exit()
-            
 
+    def load_algorithm(self, alg_name):
+        """
+        Passed file location for an algorithm
+        module and return it as an object
+        """
+        self.logger.debug("Loading algorithm=%s", alg_name)
+        #*** Replace directory forward slashes with dots, Unix-specific:
+        alg_name = alg_name.replace("/", ".")
+        self.logger.debug("module=%s", alg_name)
+        #*** Try importing the module:
+        try:
+            module = importlib.import_module(alg_name)
+        except:
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            self.logger.error("Failed to dynamically load "
+                                "module=%s .Please check that module exists "
+                                "and alter project_policy configuration "
+                                "if required",
+                                alg_name)
+            self.logger.error("Exception is %s, %s, %s",
+                                            exc_type, exc_value, 
+                                            traceback.format_tb(exc_traceback))
+            sys.exit("Exiting, please fix error...")
+
+        #*** Dynamically instantiate class 'Classifier':
+        self.logger.debug("Instantiating module class alg_name=%s", alg_name)
+        class_ = getattr(module, 'Algorithm')
+        return class_
 
 def print_help():
     """

@@ -1,5 +1,9 @@
+*.pyc
 amle/data/samples/network_tc/
 amle/*.pyc
+amle/algorithms/*.pyc
+amle/algorithms/user/*
+!amle/algorithms/user/__init__.py
 tests/.cache/
 tests/*.pyc
 tests/__pycache__/

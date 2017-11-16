@@ -37,7 +37,7 @@ datasets:
 algorithms:
     # ML Algorithms to load
     - name: ANN_simple_2_layer
-      code: ml_1
+      code: algorithms/user/mlnn
 #
 experiments:
     - name: experiment_1_training

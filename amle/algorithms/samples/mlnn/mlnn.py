@@ -21,19 +21,19 @@ class Algorithm(object):
         self.logger = logger
 
 
-    def run(self, training_dset, test_dset, parameters):
-
+    def run(self, datasets, parameters):
+        training_dset = datasets[parameters['training_dataset']]
         training_inputs = training_dset.inputs_array()
         training_outputs = training_dset.outputs_array()
 
         #Seed the random number generator
         random.seed(1)
 
-        # Create layer 1 (4 neurons, each with 3 inputs)
-        layer1 = NeuronLayer(4, 3)
+        # Create layer 1:
+        layer1 = NeuronLayer(parameters['neurons'], parameters['inputs'])
 
-        # Create layer 2 (a single neuron with 4 inputs)
-        layer2 = NeuronLayer(1, 4)
+        # Create layer 2 with inputs equal to layer 1 neurons
+        layer2 = NeuronLayer(1, parameters['neurons'])
 
         # Combine the layers to create a neural network
         neural_network = NeuralNetwork(layer1, layer2)

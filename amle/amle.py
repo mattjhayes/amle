@@ -159,17 +159,9 @@ class AMLE(BaseClass):
         for pol_exp in policy_experiments:
             #*** Run the experiment:
             self.logger.debug("running experiment=%s", pol_exp['name'])
-            if pol_exp['training_data']:
-                training_dset = self._datasets[pol_exp['training_data']]
-            else:
-                training_dset = 0
-            if pol_exp['test_data']:
-                test_dset = self._datasets[pol_exp['test_data']]
-            else:
-                test_dset = 0
             parameters = pol_exp['parameters']
             algr = self._algorithms[pol_exp['algorithm']](self.logger)
-            algr.run(training_dset, test_dset, parameters)
+            algr.run(self._datasets, parameters)
 
     def load_algorithm(self, alg_name):
         """

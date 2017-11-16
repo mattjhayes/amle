@@ -36,10 +36,14 @@ datasets:
 #
 algorithms:
     # ML Algorithms to load
-    - name: ANN_simple_2_layer
+    - name: ANN_custom_2_layer
       code: algorithms/user/mlnn
 #
 experiments:
-    - name: experiment_1_training
+    - name: experiment_1
       training_data: training_dataset
-      algorithm: ANN_simple_2_layer
+      algorithm: ANN_custom_2_layer
+      parameters:
+          training_dataset: training_dataset
+          neurons: 4
+          inputs: 6

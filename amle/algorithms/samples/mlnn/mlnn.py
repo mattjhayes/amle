@@ -21,7 +21,11 @@ class Algorithm(object):
         self.logger = logger
 
 
-    def run(self, training_inputs, training_outputs):
+    def run(self, training_dset, test_dset, parameters):
+
+        training_inputs = training_dset.inputs_array()
+        training_outputs = training_dset.outputs_array()
+
         #Seed the random number generator
         random.seed(1)
 

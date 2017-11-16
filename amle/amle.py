@@ -41,22 +41,23 @@ Principles (aspirational):
   running
 """
 
-VERSION = "0.1.0"
-
 #*** For file path:
 import os
 
 #*** Import sys and getopt for command line argument parsing:
-import sys, getopt
+import sys
+import getopt
 
 #*** Logging:
 import logging
-import coloredlogs
 
 import traceback
 
 #*** For dynamic importing of modules:
 import importlib
+
+#*** Colorise the logs:
+import coloredlogs
 
 #*** AMLE project imports:
 import config
@@ -65,10 +66,12 @@ import dataset
 #*** AMLE, for logging configuration:
 from baseclass import BaseClass
 
+VERSION = "0.1.0"
+
 #*** Configure Logging:
 logger = logging.getLogger(__name__)
 coloredlogs.install(level='DEBUG', logger=logger,
-                    fmt="%(asctime)s %(module)s[%(process)d] %(funcName)s " + 
+                    fmt="%(asctime)s %(module)s[%(process)d] %(funcName)s " +
                     "%(levelname)s %(message)s",
                     datefmt='%H:%M:%S')
 
@@ -133,7 +136,7 @@ class AMLE(BaseClass):
         """
         Run AMLE
         """
-        #*** Create dataset objects based on policy directives:
+        #*** Run, as per project policy. Start with datasets:
         policy_datasets = self.policy.get_datasets()
         for policy_dataset in policy_datasets:
             #*** Create dataset object and ingest data from file:
@@ -141,9 +144,10 @@ class AMLE(BaseClass):
             dset.set_name(policy_dataset['name'])
             dset.ingest(policy_dataset['source']['file'])
             #*** Run transforms to process dataset into right form:
-            self.transform(dset, policy_dataset['transform'])
+            dset.transform(policy_dataset['transform'])
             #*** Add dataset to datasets dictionary:
             self._datasets[policy_dataset['name']] = dset
+
         #*** Load algorithms:
         policy_algorithms = self.policy.get_algorithms()
         for policy_algorithm in policy_algorithms:
@@ -151,40 +155,21 @@ class AMLE(BaseClass):
             self._algorithms[policy_algorithm['name']] = alg
 
         #*** Now run experiments:
-        
-        # TEMP:
-        dset = self._datasets['training_dataset']
-        algr = self._algorithms['ANN_simple_2_layer'](self.logger)
-        algr.run(dset.inputs_array(), dset.outputs_array())
-
-    def transform(self, dset, transform_policy):
-        """
-        Passed a dataset object and relevant transforms to run on it.
-        Run the transforms in the dataset object
-        """
-        self.logger.debug("Running transforms on dataset")
-        for tform in transform_policy:
-            self.logger.debug("transform is %s", tform)
-            if 'trim_to_rows' in tform:
-                for row in tform['trim_to_rows']:
-                    for key in row:
-                        dset.trim_to_rows(key, row[key])
-            elif 'trim_to_columns' in tform:
-                dset.trim_to_columns(tform['trim_to_columns'])
-            elif 'rescale' in tform:
-                rdict = tform['rescale'][0]
-                dset.rescale(rdict['column'], rdict['min'], rdict['max'])
-            elif 'translate' in tform:
-                rlist = tform['translate']
-                dset.translate(rlist[0]['column'], rlist[1]['values'])
-            elif 'set_output_columns' in tform:
-                dset.set_output_columns(tform['set_output_columns'])
-            elif 'display' in tform:
-                dset.display(tform['display'])
+        policy_experiments = self.policy.get_experiments()
+        for pol_exp in policy_experiments:
+            #*** Run the experiment:
+            self.logger.debug("running experiment=%s", pol_exp['name'])
+            if pol_exp['training_data']:
+                training_dset = self._datasets[pol_exp['training_data']]
             else:
-                self.logger.critical("Unsupported transform=%s, exiting...",
-                                                                         tform)
-                sys.exit()
+                training_dset = 0
+            if pol_exp['test_data']:
+                test_dset = self._datasets[pol_exp['test_data']]
+            else:
+                test_dset = 0
+            parameters = pol_exp['parameters']
+            algr = self._algorithms[pol_exp['algorithm']](self.logger)
+            algr.run(training_dset, test_dset, parameters)
 
     def load_algorithm(self, alg_name):
         """
@@ -206,7 +191,7 @@ class AMLE(BaseClass):
                                 "if required",
                                 alg_name)
             self.logger.error("Exception is %s, %s, %s",
-                                            exc_type, exc_value, 
+                                            exc_type, exc_value,
                                             traceback.format_tb(exc_traceback))
             sys.exit("Exiting, please fix error...")
 

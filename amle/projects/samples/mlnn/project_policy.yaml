@@ -22,5 +22,9 @@ algorithms:
 #
 experiments:
     - name: experiment_1_training
-      training_data: training_dataset
       algorithm: ANN_simple_2_layer
+      training_data: training_dataset
+      test_data: 0
+      parameters:
+          neurons: 4
+          inputs: 3

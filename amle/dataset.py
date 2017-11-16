@@ -76,7 +76,7 @@ class DataSet(object):
             for row in self._data:
                 print row
         else:
-            logger.critical("Unsupported display_type=%s, exiting...",
+            self.logger.critical("Unsupported display_type=%s, exiting...",
                                                                   display_type)
             sys.exit()
 
@@ -102,6 +102,34 @@ class DataSet(object):
                 sorted_row = OrderedDict(sorted(row.items(),
                             key=lambda item: reader.fieldnames.index(item[0])))
                 self._data.append(sorted_row)
+
+    def transform(self, transform_policy):
+        """
+        Passed policy transforms and run them against the dataset.
+        """
+        self.logger.debug("Running transforms on dataset")
+        for tform in transform_policy:
+            self.logger.debug("transform is %s", tform)
+            if 'trim_to_rows' in tform:
+                for row in tform['trim_to_rows']:
+                    for key in row:
+                        self.trim_to_rows(key, row[key])
+            elif 'trim_to_columns' in tform:
+                self.trim_to_columns(tform['trim_to_columns'])
+            elif 'rescale' in tform:
+                rdict = tform['rescale'][0]
+                self.rescale(rdict['column'], rdict['min'], rdict['max'])
+            elif 'translate' in tform:
+                rlist = tform['translate']
+                self.translate(rlist[0]['column'], rlist[1]['values'])
+            elif 'set_output_columns' in tform:
+                self.set_output_columns(tform['set_output_columns'])
+            elif 'display' in tform:
+                self.display(tform['display'])
+            else:
+                self.logger.critical("Unsupported transform=%s, exiting...",
+                                                                         tform)
+                sys.exit()
 
     def translate(self, column_name, value_mapping):
         """

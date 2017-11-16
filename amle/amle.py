@@ -41,16 +41,22 @@ Principles (aspirational):
   running
 """
 
-VERSION = "0.1.0"
-
 #*** For file path:
 import os
 
 #*** Import sys and getopt for command line argument parsing:
-import sys, getopt
+import sys
+import getopt
 
 #*** Logging:
 import logging
+
+import traceback
+
+#*** For dynamic importing of modules:
+import importlib
+
+#*** Colorise the logs:
 import coloredlogs
 
 #*** AMLE project imports:
@@ -60,10 +66,12 @@ import dataset
 #*** AMLE, for logging configuration:
 from baseclass import BaseClass
 
+VERSION = "0.1.0"
+
 #*** Configure Logging:
 logger = logging.getLogger(__name__)
 coloredlogs.install(level='DEBUG', logger=logger,
-                    fmt="%(asctime)s %(module)s[%(process)d] %(funcName)s " + 
+                    fmt="%(asctime)s %(module)s[%(process)d] %(funcName)s " +
                     "%(levelname)s %(message)s",
                     datefmt='%H:%M:%S')
 
@@ -113,32 +121,76 @@ class AMLE(BaseClass):
 
         #*** Must have a policy file specified:
         if not self.project_directory:
-            logger.critical('No project directory specified, exiting')
+            logger.critical("No project directory specified, exiting")
             sys.exit()
 
         #*** Instantiate Module Classes:
         self.policy = policy.Policy(self.config, self.project_directory)
 
-        #*** List to hold dataset objects:
-        self.datasets = []
+        #*** Dictionary to hold dataset objects:
+        self._datasets = {}
+        #*** Dictionary to hold algorithm objects:
+        self._algorithms = {}
 
     def run(self):
         """
         Run AMLE
         """
-        #*** Create dataset objects based on policy directives:
+        #*** Run, as per project policy. Start with datasets:
         policy_datasets = self.policy.get_datasets()
         for policy_dataset in policy_datasets:
             #*** Create dataset object and ingest data from file:
             dset = dataset.DataSet(logger)
+            dset.set_name(policy_dataset['name'])
             dset.ingest(policy_dataset['source']['file'])
-            #*** Run transforms:
+            #*** Run transforms to process dataset into right form:
+            dset.transform(policy_dataset['transform'])
+            #*** Add dataset to datasets dictionary:
+            self._datasets[policy_dataset['name']] = dset
 
-            # TBD
+        #*** Load algorithms:
+        policy_algorithms = self.policy.get_algorithms()
+        for policy_algorithm in policy_algorithms:
+            alg = self.load_algorithm(policy_algorithm['code'])
+            self._algorithms[policy_algorithm['name']] = alg
 
-            #*** Add to datasets list:
-            self.datasets.append(dset)
+        #*** Now run experiments:
+        policy_experiments = self.policy.get_experiments()
+        for pol_exp in policy_experiments:
+            #*** Run the experiment:
+            self.logger.debug("running experiment=%s", pol_exp['name'])
+            parameters = pol_exp['parameters']
+            algr = self._algorithms[pol_exp['algorithm']](self.logger)
+            algr.run(self._datasets, parameters)
 
+    def load_algorithm(self, alg_name):
+        """
+        Passed file location for an algorithm
+        module and return it as an object
+        """
+        self.logger.debug("Loading algorithm=%s", alg_name)
+        #*** Replace directory forward slashes with dots, Unix-specific:
+        alg_name = alg_name.replace("/", ".")
+        self.logger.debug("module=%s", alg_name)
+        #*** Try importing the module:
+        try:
+            module = importlib.import_module(alg_name)
+        except:
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            self.logger.error("Failed to dynamically load "
+                                "module=%s .Please check that module exists "
+                                "and alter project_policy configuration "
+                                "if required",
+                                alg_name)
+            self.logger.error("Exception is %s, %s, %s",
+                                            exc_type, exc_value,
+                                            traceback.format_tb(exc_traceback))
+            sys.exit("Exiting, please fix error...")
+
+        #*** Dynamically instantiate class 'Classifier':
+        self.logger.debug("Instantiating module class alg_name=%s", alg_name)
+        class_ = getattr(module, 'Algorithm')
+        return class_
 
 def print_help():
     """

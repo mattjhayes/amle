@@ -10,8 +10,9 @@ datasets:
           file: data/samples/network_tc/data_set_2.csv
       transform:
         - trim_to_rows:
-            - brianfm.streamon.fm
-            - www.victoria.ac.nz/ecs
+            - test:
+                - brianfm.streamon.fm
+                - www.victoria.ac.nz/ecs
         - trim_to_columns:
             - type
             - packet_size_7
@@ -26,18 +27,23 @@ datasets:
               max: 1518
         - translate:
             - column: type
-              streaming: 1
-              browsing: 0
+            - values:
+                streaming: 1
+                browsing: 0
         - set_output_columns:
             - type
         - display: print
 #
 algorithms:
     # ML Algorithms to load
-    - name: ANN_simple_2_layer
-      code: ml_1
+    - name: ANN_custom_2_layer
+      code: algorithms/user/mlnn
 #
 experiments:
-    - name: experiment_1_training
+    - name: experiment_1
       training_data: training_dataset
-      algorithm: ANN_simple_2_layer
+      algorithm: ANN_custom_2_layer
+      parameters:
+          training_dataset: training_dataset
+          neurons: 4
+          inputs: 6

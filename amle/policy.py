@@ -21,17 +21,13 @@ parts of AMLE
 
 import sys
 import os
-import datetime
-
-#*** Voluptuous to verify inputs against schema:
-from voluptuous import Schema, Optional, Any, All, Required, Extra
-from voluptuous import Invalid, MultipleInvalid, Range
 
 #*** YAML for config and policy file parsing:
 import yaml
 
-#*** Regular Expressions:
-import re
+#*** Voluptuous to verify inputs against schema:
+from voluptuous import Schema, Optional, Any, All, Required, Extra
+from voluptuous import Invalid, MultipleInvalid, Range
 
 #*** For logging configuration:
 from baseclass import BaseClass
@@ -58,7 +54,7 @@ def validate(logger, data, schema, where):
         #*** There was a problem with the data:
         logger.critical("Policy syntax problem where=%s data=%s exception=%s "
                     "error=%s", where, yaml.dump(data), exc, exc.errors)
-        sys.exit("Exiting AMLE. Please fix error in " + POLICY_FILENAME) 
+        sys.exit("Exiting AMLE. Please fix error in " + POLICY_FILENAME)
     return 1
 
 #================= Voluptuous Schema for Validating Policy
@@ -124,7 +120,7 @@ class Policy(BaseClass):
         except (IOError, OSError) as exception:
             logger.error("Failed to open policy file=%s exception=%s",
                                                   self.fullpathname, exception)
-            sys.exit("Exiting AMLE. Please create " + POLICY_FILENAME) 
+            sys.exit("Exiting AMLE. Please create " + POLICY_FILENAME)
         #*** Check the correctness of the policy:
         validate(logger, self.policy, TOP_LEVEL_SCHEMA, 'top')
         for dataset in self.policy['datasets']:
@@ -142,10 +138,20 @@ class Policy(BaseClass):
             result.append(dataset)
         return result
 
-    def get_transforms(self, dataset_name):
+    def get_algorithms(self):
         """
-        Return a list of with embedded dictionaries of 
+        Return a list of policy algorithms
         """
-        # TBD...
-        return 
+        result = []
+        for algorithm in self.policy['algorithms']:
+            result.append(algorithm)
+        return result
 
+    def get_experiments(self):
+        """
+        Return a list of policy experiments
+        """
+        result = []
+        for algorithm in self.policy['experiments']:
+            result.append(algorithm)
+        return result

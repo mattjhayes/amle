@@ -32,6 +32,7 @@ datasets:
                 browsing: 0
         - set_output_columns:
             - type
+        - shuffle: 1
         - display: print
 #
 algorithms:

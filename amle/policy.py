@@ -76,7 +76,8 @@ TRANSFORM_SCHEMA = Schema([{
                         Optional('rescale'): list,
                         Optional('translate'): list,
                         Optional('set_output_columns'): list,
-                        Optional('display'): str
+                        Optional('display'): str,
+                        Optional('shuffle'): int
                         }
                         ])
 

@@ -19,6 +19,7 @@ learning (ML).
 
 import os
 import sys
+import random
 
 #*** CSV library:
 import csv
@@ -124,12 +125,25 @@ class DataSet(object):
                 self.translate(rlist[0]['column'], rlist[1]['values'])
             elif 'set_output_columns' in tform:
                 self.set_output_columns(tform['set_output_columns'])
+            elif 'shuffle' in tform:
+                self.shuffle(seed=tform['shuffle'])
             elif 'display' in tform:
                 self.display(tform['display'])
             else:
                 self.logger.critical("Unsupported transform=%s, exiting...",
                                                                          tform)
                 sys.exit()
+
+    def shuffle(self, seed=0):
+        """
+        Shuffle dataset rows.
+        Set seed=1 if want predictable randomness for reproduceable
+        shuffling
+        """
+        if seed:
+            random.Random(4).shuffle(self._data)
+        else:
+            random.shuffle(self._data)
 
     def translate(self, column_name, value_mapping):
         """

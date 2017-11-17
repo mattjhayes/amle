@@ -45,7 +45,10 @@ class DataSet(object):
         #*** List of dictionaries (rows) that holds the data:
         self._data = []
         #*** Subset of data that contains column names for output data:
-        self.output_columns = []
+        self._output_columns = []
+        #*** Default partition configuration:
+        self._divisor = 1
+        self._partitions = ['A']
 
     def get_data(self):
         """
@@ -60,7 +63,7 @@ class DataSet(object):
         Pass it a list of output column names
         """
         self.logger.debug("Setting output_columns=%s", output_columns)
-        self.output_columns = output_columns
+        self._output_columns = output_columns
 
     def set_name(self, name):
         """
@@ -145,24 +148,49 @@ class DataSet(object):
         else:
             random.shuffle(self._data)
 
-    def partition(divisor=2, partitions=['A', 'B']):
+    def partition(self, divisor=1, partitions=['A']):
         """
         Set partition parameters for split of dataset into
-        A and B partitions (applied when data is retrieved,
-        not to internal dataset)
+        arbitrary partitions, which are named by strings.
+        Note that partitioning is applied when data is retrieved,
+        not to internal dataset
+        - divisor is how many sets to divide data into
+        - partitions is allocation of the sets to named partitions
 
-        Overwrites any previously set partition configuration
+        Setting partition values overwrites any previously set
+        partition configuration
 
         Default partition is divisor=1, partitions=['A']
-        (i.e. all data in partition A, nothing in partition B
+        (i.e. all data in partition 'A')
 
-        Standard usage of partitions is:
-        * Partition A is used as training data
-        * Partition B is used as validation (test) data
+        Standard convention for usage of partitions is:
+        * Partition 'Training' is used as training data
+        * Partition 'Validation' is used as validation (test) data
 
+        Example: Randomise row order, then allocate 75% of rows to
+        partition 'Training' with the last 25% in partition 'Validation':
+          dataset.shuffle()
+          dataset.partition(divisor=4, partitions=['Training',
+                        'Training', 'Training', 'Validation'])
         """
-        # TBD
-        pass
+        #*** Sanity check:
+        if len(partitions) != divisor:
+            self.logger.critical("Partitions allocation list=%s length not "
+                                "equal to divisor=%s, exiting...", partitions,
+                                divisor)
+            sys.exit()
+        self._divisor = divisor
+        self._partitions = partitions
+
+    def in_partition(self, partition_name, row_number):
+        """
+        Passed a partition name, row number and total number of
+        rows in the dataset and after consulting internal
+        partition settings, return a 1 if the given row
+        belongs to the partition, otherwise 0
+        """
+        remainder = row_number % self._divisor
+        return self._partitions[remainder] == partition_name
 
     def translate(self, column_name, value_mapping):
         """
@@ -208,19 +236,22 @@ class DataSet(object):
                     result.append(row)
         self._data = result
 
-    def inputs_array(self):
+    def inputs_array(self, partition='A'):
         """
         Return input data as a numpy array
-        Filter out output column(s)
+        Filter out output column(s) and only include
+        rows from specified partition, which defaults
+        to 'A'
         """
         #*** Create a subset without the output column(s):
         data_input_subset = []
-        for row in self._data:
-            row_result = OrderedDict()
-            for row_item_key in row:
-                if row_item_key not in self.output_columns:
-                    row_result[row_item_key] = row[row_item_key]
-            data_input_subset.append(row_result)
+        for index, row in enumerate(self._data):
+            if self.in_partition(partition, index):
+                row_result = OrderedDict()
+                for row_item_key in row:
+                    if row_item_key not in self._output_columns:
+                        row_result[row_item_key] = row[row_item_key]
+                data_input_subset.append(row_result)
         #*** Now convert into numpy array:
         list_of_lists = []
         for row in data_input_subset:
@@ -239,7 +270,7 @@ class DataSet(object):
         for row in self._data:
             row_result = OrderedDict()
             for row_item_key in row:
-                if row_item_key in self.output_columns:
+                if row_item_key in self._output_columns:
                     row_result[row_item_key] = row[row_item_key]
             data_output_subset.append(row_result)
         #*** Now convert into numpy array:

@@ -33,6 +33,9 @@ datasets:
         - set_output_columns:
             - type
         - shuffle: 1
+        - partition:
+            divisor: 4
+            partions: A, A, A, B
         - display: print
 #
 algorithms:

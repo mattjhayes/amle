@@ -70,6 +70,18 @@ def test_translate():
                                OrderedDict([('alice', '2'), ('bob', '2'), ('charlie', '20'), ('dave', 1)]),
                                OrderedDict([('alice', '3'), ('bob', '4'), ('charlie', '50'), ('dave', 0)])]
 
+def test_shuffle():
+    """
+    Test the shuffle method, setting random seed for predictable test result
+    """
+    dset = dataset_module.DataSet(logger)
+    dset.ingest('data/test/test1.csv')
+    dset.shuffle(seed=1)
+    logger.info("get_data=%s", dset.get_data())
+    assert dset.get_data() == [OrderedDict([('alice', '2'), ('bob', '2'), ('charlie', '20'), ('dave', 'bar')]),
+                               OrderedDict([('alice', '3'), ('bob', '4'), ('charlie', '50'), ('dave', 'fighter')]),
+                               OrderedDict([('alice', '1'), ('bob', '1'), ('charlie', '10'), ('dave', 'foo')])]
+
 def test_set_output_columns():
     """
     Test the set_output_columns method

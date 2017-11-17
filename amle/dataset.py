@@ -145,6 +145,25 @@ class DataSet(object):
         else:
             random.shuffle(self._data)
 
+    def partition(divisor=2, partitions=['A', 'B']):
+        """
+        Set partition parameters for split of dataset into
+        A and B partitions (applied when data is retrieved,
+        not to internal dataset)
+
+        Overwrites any previously set partition configuration
+
+        Default partition is divisor=1, partitions=['A']
+        (i.e. all data in partition A, nothing in partition B
+
+        Standard usage of partitions is:
+        * Partition A is used as training data
+        * Partition B is used as validation (test) data
+
+        """
+        # TBD
+        pass
+
     def translate(self, column_name, value_mapping):
         """
         Go through all values in a column replacing any occurences

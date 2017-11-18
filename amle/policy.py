@@ -61,6 +61,7 @@ def validate(logger, data, schema, where):
 
 #*** Voluptuous schema keys / value types in the policy:
 TOP_LEVEL_SCHEMA = Schema({
+                        Required('amle_syntax_version'): int,
                         Required('datasets'): list,
                         Required('algorithms'): list,
                         Required('experiments'): list
@@ -77,7 +78,8 @@ TRANSFORM_SCHEMA = Schema([{
                         Optional('translate'): list,
                         Optional('set_output_columns'): list,
                         Optional('display'): str,
-                        Optional('shuffle'): int
+                        Optional('shuffle'): int,
+                        Optional('partition'): list
                         }
                         ])
 

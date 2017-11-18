@@ -130,6 +130,8 @@ class DataSet(object):
                 self.set_output_columns(tform['set_output_columns'])
             elif 'shuffle' in tform:
                 self.shuffle(seed=tform['shuffle'])
+            elif 'partition' in tform:
+                self.partition(tform['partition'])
             elif 'display' in tform:
                 self.display(tform['display'])
             else:
@@ -148,19 +150,21 @@ class DataSet(object):
         else:
             random.shuffle(self._data)
 
-    def partition(self, divisor=1, partitions=['A']):
+    def partition(self, partitions):
         """
         Set partition parameters for split of dataset into
         arbitrary partitions, which are named by strings.
         Note that partitioning is applied when data is retrieved,
         not to internal dataset
-        - divisor is how many sets to divide data into
-        - partitions is allocation of the sets to named partitions
 
-        Setting partition values overwrites any previously set
+        Passed a list of partition names which are used to divide
+        the dataset based on modulo division by the length of
+        the list.
+
+        Setting partitions overwrites any previously set
         partition configuration
 
-        Default partition is divisor=1, partitions=['A']
+        Default partition is partitions=['A']
         (i.e. all data in partition 'A')
 
         Standard convention for usage of partitions is:
@@ -170,17 +174,11 @@ class DataSet(object):
         Example: Randomise row order, then allocate 75% of rows to
         partition 'Training' with the last 25% in partition 'Validation':
           dataset.shuffle()
-          dataset.partition(divisor=4, partitions=['Training',
-                        'Training', 'Training', 'Validation'])
+          dataset.partition(partitions=['Training', 'Training',
+                                        'Training', 'Validation'])
         """
-        #*** Sanity check:
-        if len(partitions) != divisor:
-            self.logger.critical("Partitions allocation list=%s length not "
-                                "equal to divisor=%s, exiting...", partitions,
-                                divisor)
-            sys.exit()
-        self._divisor = divisor
         self._partitions = partitions
+        self._divisor = len(partitions)
 
     def in_partition(self, partition_name, row_number):
         """
@@ -260,19 +258,20 @@ class DataSet(object):
             list_of_lists.append(row)
         return array(list_of_lists)
 
-    def outputs_array(self):
+    def outputs_array(self, partition='A'):
         """
         Return output data as a numpy array
         Filter out input columns
         """
         #*** Create a subset without the input column(s):
         data_output_subset = []
-        for row in self._data:
-            row_result = OrderedDict()
-            for row_item_key in row:
-                if row_item_key in self._output_columns:
-                    row_result[row_item_key] = row[row_item_key]
-            data_output_subset.append(row_result)
+        for index, row in enumerate(self._data):
+            if self.in_partition(partition, index):
+                row_result = OrderedDict()
+                for row_item_key in row:
+                    if row_item_key in self._output_columns:
+                        row_result[row_item_key] = row[row_item_key]
+                data_output_subset.append(row_result)
         #*** Now convert into numpy array:
         list_of_lists = []
         for row in data_output_subset:

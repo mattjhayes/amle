@@ -4,6 +4,8 @@
 #
 #*** Written in YAML
 #
+amle_syntax_version: 1
+#
 datasets:
     - name: training_dataset
       source:
@@ -34,8 +36,10 @@ datasets:
             - type
         - shuffle: 1
         - partition:
-            divisor: 4
-            partions: A, A, A, B
+            - A
+            - A
+            - A
+            - B
         - display: print
 #
 algorithms:

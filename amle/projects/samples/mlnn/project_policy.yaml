@@ -6,6 +6,8 @@
 #
 #*** Written in YAML
 #
+amle_syntax_version: 1
+#
 datasets:
     - name: training_dataset
       source:

@@ -43,15 +43,20 @@ datasets:
         - display: print
 #
 algorithms:
-    # ML Algorithms to load
+    # Testing algorithms to load:
+    - name: cross_validator_1
+      location: algorithms/samples/testing/cross_validation
+    # ML algorithms to load:
     - name: ANN_custom_2_layer
-      code: algorithms/user/mlnn
+      location: algorithms/user/mlnn
 #
 experiments:
     - name: experiment_1
-      training_data: training_dataset
-      algorithm: ANN_custom_2_layer
+      algorithm: cross_validator_1
       parameters:
-          training_dataset: training_dataset
-          neurons: 4
-          inputs: 6
+          k-folds: 4
+          algorithm: ANN_custom_2_layer
+              parameters:
+                  training_dataset: training_dataset
+                  neurons: 4
+                  inputs: 6

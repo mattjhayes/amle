@@ -13,19 +13,41 @@ datasets:
       source:
           file: data/samples/mlnn/miloharper_data_set.csv
       transform:
+        # Set which column(s) hold the results:
         - set_output_columns:
             - output
+        # Partition between training and validation data:
+        - partition:
+            - Training
+            - Training
+            - Training
+            - Training
+            - Training
+            - Training
+            - Training
+            - Validation
         - display: print
 #
 algorithms:
     # ML Algorithms to load
     - name: ANN_simple_2_layer
-      code: algorithms/samples/mlnn/mlnn
+      location: algorithms/samples/mlnn/mlnn
 #
 experiments:
     - name: experiment_1_training
-      algorithm: ANN_simple_2_layer
-      parameters:
-          training_dataset: training_dataset
-          neurons: 4
-          inputs: 3
+      algorithm:
+          name: ANN_simple_2_layer
+          parameters:
+              input_neurons: 4
+              input_variables: 3
+              random_seed: 1
+          methods:
+            - train:
+                  parameters:
+                      dataset: training_dataset
+                      partition: Training
+                      iterations: 60000
+            - test:
+                  parameters:
+                      dataset: training_dataset
+                      partition: Validation

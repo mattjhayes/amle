@@ -151,7 +151,7 @@ class AMLE(BaseClass):
         #*** Load algorithms:
         policy_algorithms = self.policy.get_algorithms()
         for policy_algorithm in policy_algorithms:
-            alg = self.load_algorithm(policy_algorithm['code'])
+            alg = self.load_algorithm(policy_algorithm['location'])
             self._algorithms[policy_algorithm['name']] = alg
 
         #*** Now run experiments:
@@ -159,9 +159,21 @@ class AMLE(BaseClass):
         for pol_exp in policy_experiments:
             #*** Run the experiment:
             self.logger.debug("running experiment=%s", pol_exp['name'])
-            parameters = pol_exp['parameters']
-            algr = self._algorithms[pol_exp['algorithm']](self.logger)
-            algr.run(self._datasets, parameters)
+            algr_name = pol_exp['algorithm']['name']
+            algr_parameters = pol_exp['algorithm']['parameters']
+            self.logger.debug("Initiating algorithm=%s with parameters=%s",
+                                        algr_name, algr_parameters)
+            algr = self._algorithms[algr_name](self.logger, algr_parameters)
+            #*** Run specified methods in experiment class:
+            methods = pol_exp['algorithm']['methods']
+            for method_dict in methods:
+                self.logger.debug("method_dict=%s", method_dict)
+                method = next(iter(method_dict))
+                self.logger.debug("method=%s", method)
+                parameters = method_dict[method]['parameters']
+                self.logger.debug("parameters=%s", parameters)
+                result = getattr(algr, method)(self._datasets, parameters)
+                self.logger.debug("result=%s", result)
 
     def load_algorithm(self, alg_name):
         """

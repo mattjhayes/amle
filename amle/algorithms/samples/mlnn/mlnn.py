@@ -14,50 +14,77 @@ class Algorithm(object):
     """
     An algorithm module for import by AMLE
     """
-    def __init__(self, logger):
+    def __init__(self, logger, parameters):
         """
         Initialise the algorithm
         """
         self.logger = logger
+        #*** Retrieve parameters passed to us:
+        self.input_variables = parameters['input_variables']
+        self.input_neurons = parameters['input_neurons']
+        self.seed = parameters['random_seed']
 
+        #*** Seed the random number generator:
+        if self.seed:
+            random.seed(self.seed)
 
-    def run(self, datasets, parameters):
-        training_dset = datasets[parameters['training_dataset']]
-        training_inputs = training_dset.inputs_array()
-        training_outputs = training_dset.outputs_array()
+        #*** Create neuron layer 1 (input layer):
+        self.layer1 = NeuronLayer(self.input_neurons, self.input_variables)
 
-        #Seed the random number generator
-        random.seed(1)
-
-        # Create layer 1:
-        layer1 = NeuronLayer(parameters['neurons'], parameters['inputs'])
-
-        # Create layer 2 with inputs equal to layer 1 neurons
-        layer2 = NeuronLayer(1, parameters['neurons'])
+        #*** Create layer 2 with inputs equal to layer 1 neurons:
+        self.layer2 = NeuronLayer(1, self.input_neurons)
 
         # Combine the layers to create a neural network
-        neural_network = NeuralNetwork(layer1, layer2)
+        self.neural_network = NeuralNetwork(self.layer1, self.layer2)
 
-        print "Stage 1) Random starting synaptic weights: "
-        neural_network.print_weights()
+    def train(self, datasets, parameters):
+        """
+        Train the multi-layer neural network with training data
+        """
+        #*** Retrieve parameters passed to us:
+        dataset = parameters['dataset']
+        partition = parameters['partition']
+        iterations = parameters['iterations']
 
-        print "training_inputs:"
-        print(training_inputs)
-        print "training_set_outputs:"
-        print(training_outputs)
+        #*** Get the dataset ready:
+        training_dset = datasets[dataset]
+        training_inputs = training_dset.inputs_array(partition=partition)
+        training_outputs = training_dset.outputs_array(partition=partition)
         
+        self.logger.debug("training_inputs=\n%s", training_inputs)
+        self.logger.debug("training_outputs=\n%s", training_outputs)
+
         # Train the neural network using the training set.
-        # Do it 60,000 times and make small adjustments each time.
-        neural_network.train(training_inputs, training_outputs, 60000)
+        # Do it many times and make small adjustments each time.
+        self.neural_network.train(training_inputs, training_outputs, iterations)
 
-        print "Stage 2) New synaptic weights after training: "
-        neural_network.print_weights()
-        
-        # Test the neural network with a new situation.
-        print "Stage 3) Considering a new situation [1, 1, 0] -> ?: "
-        hidden_state, output = neural_network.think(array([1, 1, 0]))
-        print output
+        self.logger.debug("Trained weights:")
+        self.logger.debug(" - Layer 1:\n%s",self.layer1.synaptic_weights)
+        self.logger.debug(" - Layer 2:\n%s",self.layer2.synaptic_weights)
 
+    def test(self, datasets, parameters):
+        """
+        Ask the multi-layer neural network for an answer to a situation
+        and check result accuracy
+        """
+        #*** Retrieve parameters passed to us:
+        dataset = parameters['dataset']
+        partition = parameters['partition']
+
+        #*** Get the dataset ready:
+        test_dset = datasets[dataset]
+        test_inputs = test_dset.inputs_array(partition=partition)
+        test_outputs = test_dset.outputs_array(partition=partition)
+
+        self.logger.debug("test_inputs=\n%s", test_inputs)
+        self.logger.debug("test_outputs=\n%s", test_outputs)
+
+        #*** Run thinking tests:
+        for index, input_array in enumerate(test_inputs):
+            self.logger.debug("input_array=%s", input_array)
+            hidden_state, output = self.neural_network.think(input_array)
+            self.logger.debug("output=%s", output)
+            self.logger.debug("correct output=%s", test_outputs[index])
 
 class NeuronLayer():
     def __init__(self, number_of_neurons, number_of_inputs_per_neuron):

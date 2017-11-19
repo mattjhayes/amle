@@ -80,11 +80,46 @@ class Algorithm(object):
         self.logger.debug("test_outputs=\n%s", test_outputs)
 
         #*** Run thinking tests:
+        results = []
         for index, input_array in enumerate(test_inputs):
             self.logger.debug("input_array=%s", input_array)
             hidden_state, output = self.neural_network.think(input_array)
             self.logger.debug("output=%s", output)
             self.logger.debug("correct output=%s", test_outputs[index])
+            results.append({'computed': output[0], 'actual': test_outputs[index][0]})
+        return results
+
+    def cross_validate(self, datasets, parameters):
+        """
+        Perform a cross validation test
+        """
+        #*** Retrieve parameters passed to us:
+        dataset_name = parameters['dataset']
+        
+        dataset = datasets[dataset_name]
+        partitions_len = dataset.partition_sets()
+        
+        #*** Run cross validation by setting each partition in turn
+        #*** to be validation with all others as training:
+        for index in xrange(partitions_len):
+            #*** Reinitialise the neurons:
+            self.layer1 = NeuronLayer(self.input_neurons, self.input_variables)
+            self.layer2 = NeuronLayer(1, self.input_neurons)
+            self.neural_network = NeuralNetwork(self.layer1, self.layer2)
+
+            #*** Set partitions:
+            partitions_list = ['Training'] * partitions_len
+            partitions_list[index] = 'Validation'
+            self.logger.debug("Setting partitions to %s", partitions_list)
+            dataset.partition(partitions_list)
+            
+            #*** Run training:
+            parameters['partition'] = 'Training'
+            self.train(datasets, parameters)
+
+            #*** Run tests:
+            results = self.test(datasets, parameters)
+            self.logger.info("results=%s", results)
 
 class NeuronLayer():
     def __init__(self, number_of_neurons, number_of_inputs_per_neuron):

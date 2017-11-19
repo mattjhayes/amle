@@ -36,27 +36,41 @@ datasets:
             - type
         - shuffle: 1
         - partition:
-            - A
-            - A
-            - A
-            - B
+            - Training
+            - Training
+            - Training
+            - Validation
         - display: print
 #
 algorithms:
     # Testing algorithms to load:
-    - name: cross_validator_1
-      location: algorithms/samples/testing/cross_validation
+    #- name: cross_validator_1
+    #  location: algorithms/samples/testing/cross_validation
     # ML algorithms to load:
-    - name: ANN_custom_2_layer
-      location: algorithms/user/mlnn
+    - name: ANN_simple_2_layer
+      location: algorithms/samples/mlnn/mlnn
 #
 experiments:
-    - name: experiment_1
-      algorithm: cross_validator_1
-      parameters:
-          k-folds: 4
-          algorithm: ANN_custom_2_layer
-              parameters:
-                  training_dataset: training_dataset
-                  neurons: 4
-                  inputs: 6
+    - name: experiment_1_training
+      algorithm:
+          name: ANN_simple_2_layer
+          parameters:
+              input_neurons: 4
+              input_variables: 6
+              random_seed: 1
+          methods:
+            - train:
+                  parameters:
+                      dataset: training_dataset
+                      partition: Training
+                      iterations: 60000
+            - test:
+                  parameters:
+                      dataset: training_dataset
+                      partition: Validation
+            - cross_validate:
+                  parameters:
+                      dataset: training_dataset
+                      iterations: 60000
+
+

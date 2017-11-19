@@ -190,6 +190,12 @@ class DataSet(object):
         remainder = row_number % self._divisor
         return self._partitions[remainder] == partition_name
 
+    def partition_sets(self):
+        """
+        Return the number of sets in the partition
+        """
+        return self._divisor
+
     def translate(self, column_name, value_mapping):
         """
         Go through all values in a column replacing any occurences

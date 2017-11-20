@@ -44,14 +44,16 @@ datasets:
 #
 algorithms:
     # Testing algorithms to load:
-    #- name: cross_validator_1
-    #  location: algorithms/samples/testing/cross_validation
-    # ML algorithms to load:
     - name: ANN_simple_2_layer
       location: algorithms/samples/mlnn/mlnn
 #
+aggregators:
+    # Algorithms that run experiments and aggregate results
+    - name: cross_validator_1
+      location: aggregators/samples/cross_validator_1/cross_validator_1
+#
 experiments:
-    - name: experiment_1_training
+    - name: experiment_1
       algorithm:
           name: ANN_simple_2_layer
           parameters:
@@ -72,5 +74,12 @@ experiments:
                   parameters:
                       dataset: training_dataset
                       iterations: 60000
-
+#
+run:
+    - name: run_experiment_1
+      aggregator:
+          name: cross_validator_1
+          parameters:
+              experiments:
+                - experiment_1
 

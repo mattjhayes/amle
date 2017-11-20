@@ -34,7 +34,7 @@ algorithms:
       location: algorithms/samples/mlnn/mlnn
 #
 experiments:
-    - name: experiment_1_training
+    - name: experiment_1
       algorithm:
           name: ANN_simple_2_layer
           parameters:
@@ -51,3 +51,8 @@ experiments:
                   parameters:
                       dataset: training_dataset
                       partition: Validation
+#
+run:
+    - name: run_experiment_1
+      experiment: experiment_1
+    

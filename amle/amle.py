@@ -131,7 +131,7 @@ class AMLE(BaseClass):
         self._datasets = {}
         #*** Dictionary to hold algorithm objects:
         self._algorithms = {}
-        #*** Dictionary to hold algorithm objects:
+        #*** Dictionary to hold aggregator objects:
         self._aggregators = {}
 
     def run(self):
@@ -156,7 +156,7 @@ class AMLE(BaseClass):
             alg = self.load_algorithm(policy_algorithm['location'])
             self._algorithms[policy_algorithm['name']] = alg
 
-        #*** Load (optional) aggregators:
+        #*** Load aggregators (optional):
         policy_aggregators = self.policy.get_aggregators()
         for policy_aggregator in policy_aggregators:
             agg = self.load_aggregator(policy_aggregator['location'])
@@ -197,30 +197,34 @@ class AMLE(BaseClass):
             result = getattr(algr, method)(self._datasets, parameters)
             self.logger.debug("result=%s", result)
 
-    def run_aggregator(self, agg_name, parameters):
+    def run_aggregator(self, agg_name, agg_parameters):
         """
         Run an aggregator, as per spec from policy
         """
         self.logger.debug("Preparing to run aggregator=%s", agg_name)
         pol_agg = self.policy.get_aggregator(agg_name)
         self.logger.debug("pol_agg=%s", pol_agg)
-        experiments = []
-        #*** Start experiments:
-        for name in parameters['experiments']:
-            self.logger.debug("Initialising algorithm for name=%s", name)
-            pol_exp = self.policy.get_experiment(name)
-            algr_name = pol_exp['algorithm']['name']
-            algr_parameters = pol_exp['algorithm']['parameters']
-            self.logger.debug("Initiating algorithm=%s with parameters=%s",
-                                    algr_name, algr_parameters)
-            algr = self._algorithms[algr_name](self.logger, algr_parameters)
-            experiments.append({'name': name, 'algr': algr, 'policy': pol_exp})
+        #*** Start experiment:
+        name = agg_parameters['experiment']
+        #      dataset: training_dataset
+        #      iterations: 60000
+        #      partions_number: 4
+        self.logger.debug("Initialising algorithm for name=%s", name)
+        pol_experiment = self.policy.get_experiment(name)
+        alg_name = pol_experiment['algorithm']['name']
+        alg_parameters = pol_experiment['algorithm']['parameters']
+        self.logger.debug("Initiating algorithm=%s with parameters=%s",
+                                                      alg_name, alg_parameters)
+        alg = self._algorithms[alg_name](self.logger, alg_parameters)
+        agg_parameters['experiment_name'] = name
+        agg_parameters['alg'] = alg
+        agg_parameters['experiment_policy'] = pol_experiment
 
         #*** Start aggregator:
         self.logger.debug("Starting aggregator=%s with parameters=%s",
-                                                          agg_name, parameters)
+                                                      agg_name, agg_parameters)
         agg = self._aggregators[agg_name](self.logger, self._datasets,
-                                                       parameters, experiments)
+                                                                agg_parameters)
         result = getattr(agg, 'run')()
         self.logger.debug("result=%s", result)
 

@@ -5,7 +5,8 @@ algorithm
 Based on excellent tutorial 'How to build a multi-layered neural network in Python'
 by Milo Spencer-Harper
 
-See: https://medium.com/technology-invention-and-more/how-to-build-a-multi-layered-neural-network-in-python-53ec3d1d326a
+See: https://medium.com/technology-invention-and-more/how-to-build-a-multi \
+                            -layered-neural-network-in-python-53ec3d1d326a
 """
 
 from numpy import exp, array, random, dot
@@ -37,6 +38,15 @@ class Algorithm(object):
         # Combine the layers to create a neural network
         self.neural_network = NeuralNetwork(self.layer1, self.layer2)
 
+    def initialise(self):
+        """
+        Use this to re-initialise before re-training
+        """
+        #*** Reinitialise the neurons:
+        self.layer1 = NeuronLayer(self.input_neurons, self.input_variables)
+        self.layer2 = NeuronLayer(1, self.input_neurons)
+        self.neural_network = NeuralNetwork(self.layer1, self.layer2)
+
     def train(self, datasets, parameters):
         """
         Train the multi-layer neural network with training data
@@ -59,8 +69,8 @@ class Algorithm(object):
         self.neural_network.train(training_inputs, training_outputs, iterations)
 
         self.logger.debug("Trained weights:")
-        self.logger.debug(" - Layer 1:\n%s",self.layer1.synaptic_weights)
-        self.logger.debug(" - Layer 2:\n%s",self.layer2.synaptic_weights)
+        self.logger.debug(" - Layer 1:\n%s", self.layer1.synaptic_weights)
+        self.logger.debug(" - Layer 2:\n%s", self.layer2.synaptic_weights)
 
     def test(self, datasets, parameters):
         """
@@ -89,41 +99,10 @@ class Algorithm(object):
             results.append({'computed': output[0], 'actual': test_outputs[index][0]})
         return results
 
-    def cross_validate(self, datasets, parameters):
-        """
-        Perform a cross validation test
-        """
-        #*** Retrieve parameters passed to us:
-        dataset_name = parameters['dataset']
-        
-        dataset = datasets[dataset_name]
-        partitions_len = dataset.partition_sets()
-        
-        #*** Run cross validation by setting each partition in turn
-        #*** to be validation with all others as training:
-        for index in xrange(partitions_len):
-            #*** Reinitialise the neurons:
-            self.layer1 = NeuronLayer(self.input_neurons, self.input_variables)
-            self.layer2 = NeuronLayer(1, self.input_neurons)
-            self.neural_network = NeuralNetwork(self.layer1, self.layer2)
-
-            #*** Set partitions:
-            partitions_list = ['Training'] * partitions_len
-            partitions_list[index] = 'Validation'
-            self.logger.debug("Setting partitions to %s", partitions_list)
-            dataset.partition(partitions_list)
-            
-            #*** Run training:
-            parameters['partition'] = 'Training'
-            self.train(datasets, parameters)
-
-            #*** Run tests:
-            results = self.test(datasets, parameters)
-            self.logger.info("results=%s", results)
-
 class NeuronLayer():
     def __init__(self, number_of_neurons, number_of_inputs_per_neuron):
-        self.synaptic_weights = 2 * random.random((number_of_inputs_per_neuron, number_of_neurons)) - 1
+        self.synaptic_weights = 2 * random.random((number_of_inputs_per_neuron,
+                                                        number_of_neurons)) - 1
 
 
 class NeuralNetwork():

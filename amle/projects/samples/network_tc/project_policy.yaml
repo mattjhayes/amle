@@ -60,26 +60,14 @@ experiments:
               input_neurons: 4
               input_variables: 6
               random_seed: 1
-          methods:
-            - train:
-                  parameters:
-                      dataset: training_dataset
-                      partition: Training
-                      iterations: 60000
-            - test:
-                  parameters:
-                      dataset: training_dataset
-                      partition: Validation
-            - cross_validate:
-                  parameters:
-                      dataset: training_dataset
-                      iterations: 60000
 #
 run:
     - name: run_experiment_1
       aggregator:
           name: cross_validator_1
           parameters:
-              experiments:
-                - experiment_1
+              experiment: experiment_1
+              dataset: training_dataset
+              iterations: 60000
+              partions_number: 4
 

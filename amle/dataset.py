@@ -121,8 +121,8 @@ class DataSet(object):
             elif 'trim_to_columns' in tform:
                 self.trim_to_columns(tform['trim_to_columns'])
             elif 'rescale' in tform:
-                rdict = tform['rescale'][0]
-                self.rescale(rdict['column'], rdict['min'], rdict['max'])
+                for rdict in tform['rescale']:
+                    self.rescale(rdict['column'], rdict['min'], rdict['max'])
             elif 'translate' in tform:
                 rlist = tform['translate']
                 self.translate(rlist[0]['column'], rlist[1]['values'])

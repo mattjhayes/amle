@@ -30,21 +30,21 @@ class Algorithm(object):
             random.seed(self.seed)
 
         #*** Create neuron layer 1 (input layer):
-        self.layer1 = NeuronLayer(self.input_neurons, self.input_variables)
+        self.layer1 = NeuronLayer(logger, self.input_neurons, self.input_variables)
 
         #*** Create layer 2 with inputs equal to layer 1 neurons:
-        self.layer2 = NeuronLayer(1, self.input_neurons)
+        self.layer2 = NeuronLayer(logger, 1, self.input_neurons)
 
         # Combine the layers to create a neural network
-        self.neural_network = NeuralNetwork(self.layer1, self.layer2)
+        self.neural_network = NeuralNetwork(logger, self.layer1, self.layer2)
 
     def initialise(self):
         """
         Use this to re-initialise before re-training
         """
         #*** Reinitialise the neurons:
-        self.layer1 = NeuronLayer(self.input_neurons, self.input_variables)
-        self.layer2 = NeuronLayer(1, self.input_neurons)
+        self.layer1 = NeuronLayer(self.logger, self.input_neurons, self.input_variables)
+        self.layer2 = NeuronLayer(self.logger, 1, self.input_neurons)
         self.neural_network = NeuralNetwork(self.layer1, self.layer2)
 
     def train(self, datasets, parameters):
@@ -100,31 +100,49 @@ class Algorithm(object):
         return results
 
 class NeuronLayer():
-    def __init__(self, number_of_neurons, number_of_inputs_per_neuron):
+    """
+    Generates an array of random synaptic weights for a
+    layer of the neural network
+    """
+    def __init__(self, logger, number_of_neurons, number_of_inputs_per_neuron):
         self.synaptic_weights = 2 * random.random((number_of_inputs_per_neuron,
                                                         number_of_neurons)) - 1
-
+        logger.debug("synaptic_weights=\n%s", self.synaptic_weights)
 
 class NeuralNetwork():
-    def __init__(self, layer1, layer2):
+    """
+    Represents a neural network
+    """
+    def __init__(self, logger, layer1, layer2):
+        """
+        Initialise the neural network
+        """
+        self.logger = logger
+        #*** These will hold NeuronLayer instances:
         self.layer1 = layer1
         self.layer2 = layer2
 
-    # The Sigmoid function, which describes an S shaped curve.
-    # We pass the weighted sum of the inputs through this function to
-    # normalise them between 0 and 1.
     def __sigmoid(self, x):
+        """
+        The Sigmoid function, which describes an S shaped curve.
+        We pass the weighted sum of the inputs through this function to
+        normalise them between 0 and 1. Uses exp (e) from numpy.
+        """
         return 1 / (1 + exp(-x))
 
-    # The derivative of the Sigmoid function.
-    # This is the gradient of the Sigmoid curve.
-    # It indicates how confident we are about the existing weight.
     def __sigmoid_derivative(self, x):
+        """
+        The derivative of the Sigmoid function.
+        This is the gradient of the Sigmoid curve.
+        It indicates how confident we are about the existing weight.
+        """
         return x * (1 - x)
 
-    # We train the neural network through a process of trial and error.
-    # Adjusting the synaptic weights each time.
     def train(self, training_set_inputs, training_set_outputs, number_of_training_iterations):
+        """
+        Train the neural network, running a number of training
+        iteration (epochs) and adjusting synaptic weights each time
+        """
         for iteration in xrange(number_of_training_iterations):
             # Pass the training set through our neural network
             output_from_layer_1, output_from_layer_2 = self.think(training_set_inputs)
@@ -147,16 +165,17 @@ class NeuralNetwork():
             self.layer1.synaptic_weights += layer1_adjustment
             self.layer2.synaptic_weights += layer2_adjustment
 
-    # The neural network thinks.
     def think(self, inputs):
+        """
+        Passed inputs and return outputs from each layer
+        """
         output_from_layer1 = self.__sigmoid(dot(inputs, self.layer1.synaptic_weights))
         output_from_layer2 = self.__sigmoid(dot(output_from_layer1, self.layer2.synaptic_weights))
         return output_from_layer1, output_from_layer2
 
-    # The neural network prints its weights
-    def print_weights(self):
-        print "    Layer 1 (4 neurons, each with 3 inputs): "
-        print self.layer1.synaptic_weights
-        print "    Layer 2 (1 neuron, with 4 inputs):"
-        print self.layer2.synaptic_weights
+    def weights(self):
+        """
+        Return the synaptic weights for each layer
+        """
+        return self.layer1.synaptic_weights, self.layer2.synaptic_weights
 

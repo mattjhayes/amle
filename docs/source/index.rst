@@ -3,8 +3,12 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to AMLE's documentation!
-================================
+AMLE
+====
+
+AMLE (Automated Machine Learning Environment) is designed to help
+automate running machine learning (ML) tests to reduce effort and
+make it easier to innovate.
 
 .. toctree::
    :maxdepth: 2

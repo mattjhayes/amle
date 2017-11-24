@@ -1,3 +1,7 @@
+docs/build/
+docs/_build
+docs/_static
+docs/_templates
 *.pyc
 amle/data/samples/network_tc/
 amle/*.pyc
@@ -8,3 +12,7 @@ amle/projects/user/
 tests/.cache/
 tests/*.pyc
 tests/__pycache__/
+*.egg-info/
+build/
+dist/
+.cache/

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 The mlnn2 module provides a multi-layer neural network
 algorithm
@@ -51,7 +52,7 @@ class Algorithm(object):
         self.outputs = 1
 
         # TBD, remove static parameters:
-        self.nn = NeuralNetwork(self.inputs, self.hidden_neurons, self.outputs,
+        self.nn = NeuralNetwork(logger, self.inputs, self.hidden_neurons, self.outputs,
                     hidden_layer_weights=[0.15, 0.2, 0.25, 0.3],
                     hidden_layer_bias=0.35,
                     output_layer_weights=[0.4, 0.45, 0.5, 0.55],
@@ -62,7 +63,7 @@ class Algorithm(object):
         Use this to re-initialise before re-training
         """
         # TBD, remove static parameters:
-        self.nn = NeuralNetwork(self.inputs, self.hidden_neurons, self.outputs,
+        self.nn = NeuralNetwork(self.logger, self.inputs, self.hidden_neurons, self.outputs,
                     hidden_layer_weights=[0.15, 0.2, 0.25, 0.3],
                     hidden_layer_bias=0.35,
                     output_layer_weights=[0.4, 0.45, 0.5, 0.55],
@@ -103,10 +104,23 @@ class Algorithm(object):
         # TBD
         pass
 
-class NeuralNetwork:
+class NeuralNetwork(object):
     LEARNING_RATE = 0.5
 
-    def __init__(self, num_inputs, num_hidden, num_outputs, hidden_layer_weights = None, hidden_layer_bias = None, output_layer_weights = None, output_layer_bias = None):
+    def __init__(self, logger, num_inputs, num_hidden, num_outputs,
+                    hidden_layer_weights = None, hidden_layer_bias = None,
+                    output_layer_weights = None, output_layer_bias = None):
+        """
+        Initialise a NeuralNetwork
+        """
+        logger.debug("NeuralNetwork initialising with num_inputs=%s, "
+                    "num_hidden=%s, num_outputs=%s, hidden_layer_weights=%s",
+                    num_inputs, num_hidden, num_outputs, hidden_layer_weights)
+        logger.debug("hidden_layer_bias=%s, output_layer_weights=%s, "
+                    "output_layer_bias=%s", hidden_layer_bias,
+                     output_layer_weights, output_layer_bias)
+   
+        self.logger = logger
         self.num_inputs = num_inputs
 
         self.hidden_layer = NeuronLayer(num_hidden, hidden_layer_bias)
@@ -116,16 +130,30 @@ class NeuralNetwork:
         self.init_weights_from_hidden_layer_neurons_to_output_layer_neurons(output_layer_weights)
 
     def init_weights_from_inputs_to_hidden_layer_neurons(self, hidden_layer_weights):
+        """
+        Assign hidden layer weights, or if set to zero then assign
+        randomly
+        """
+        self.logger.debug("init_weights_from_inputs_to_hidden_layer_neurons "
+                               "hidden_layer_weights=%s", hidden_layer_weights)
         weight_num = 0
         for h in range(len(self.hidden_layer.neurons)):
+            self.logger.debug("h=%s", h)
             for i in range(self.num_inputs):
+                self.logger.debug("i=%s", i)
                 if not hidden_layer_weights:
                     self.hidden_layer.neurons[h].weights.append(random.random())
                 else:
+                    self.logger.debug("h=%s i=%s weight_num=%s", h, i, weight_num)
                     self.hidden_layer.neurons[h].weights.append(hidden_layer_weights[weight_num])
-                weight_num += 1
+            weight_num += 1
 
     def init_weights_from_hidden_layer_neurons_to_output_layer_neurons(self, output_layer_weights):
+        """
+        TBD
+        """
+        self.logger.debug("init_weights_from_hidden_layer_neurons_to_output_layer_neurons "
+                        "output_layer_weights=%s", output_layer_weights)
         weight_num = 0
         for o in range(len(self.output_layer.neurons)):
             for h in range(len(self.hidden_layer.neurons)):
@@ -203,7 +231,7 @@ class NeuralNetwork:
                 total_error += self.output_layer.neurons[o].calculate_error(training_outputs[o])
         return total_error
 
-class NeuronLayer:
+class NeuronLayer(object):
     def __init__(self, num_neurons, bias):
 
         # Every neuron in a layer shares the same bias
@@ -233,7 +261,7 @@ class NeuronLayer:
             outputs.append(neuron.output)
         return outputs
 
-class Neuron:
+class Neuron(object):
     def __init__(self, bias):
         self.bias = bias
         self.weights = []
@@ -304,10 +332,10 @@ class Neuron:
 
 # Blog post example:
 
-nn = NeuralNetwork(2, 2, 2, hidden_layer_weights=[0.15, 0.2, 0.25, 0.3], hidden_layer_bias=0.35, output_layer_weights=[0.4, 0.45, 0.5, 0.55], output_layer_bias=0.6)
-for i in range(10000):
-    nn.train([0.05, 0.1], [0.01, 0.99])
-    print(i, round(nn.calculate_total_error([[[0.05, 0.1], [0.01, 0.99]]]), 9))
+#nn = NeuralNetwork(2, 2, 2, hidden_layer_weights=[0.15, 0.2, 0.25, 0.3], hidden_layer_bias=0.35, output_layer_weights=[0.4, 0.45, 0.5, 0.55], output_layer_bias=0.6)
+#for i in range(10000):
+#    nn.train([0.05, 0.1], [0.01, 0.99])
+#    print(i, round(nn.calculate_total_error([[[0.05, 0.1], [0.01, 0.99]]]), 9))
 
 # XOR example:
 

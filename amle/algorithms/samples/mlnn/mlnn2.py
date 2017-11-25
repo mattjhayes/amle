@@ -16,6 +16,8 @@ Heavily based on original code from:
 import random
 import math
 
+from numpy import exp
+
 #================== UNDER CONSTRUCTION, DOES NOT WORK IN AMLE YET =============
 
 #
@@ -113,18 +115,18 @@ class NeuralNetwork(object):
         """
         Initialise a NeuralNetwork
         """
-        logger.debug("NeuralNetwork initialising with num_inputs=%s, "
+        logger.info("NeuralNetwork initialising with num_inputs=%s, "
                     "num_hidden=%s, num_outputs=%s, hidden_layer_weights=%s",
                     num_inputs, num_hidden, num_outputs, hidden_layer_weights)
-        logger.debug("hidden_layer_bias=%s, output_layer_weights=%s, "
+        logger.info("    hidden_layer_bias=%s, output_layer_weights=%s, "
                     "output_layer_bias=%s", hidden_layer_bias,
                      output_layer_weights, output_layer_bias)
    
         self.logger = logger
         self.num_inputs = num_inputs
 
-        self.hidden_layer = NeuronLayer(num_hidden, hidden_layer_bias)
-        self.output_layer = NeuronLayer(num_outputs, output_layer_bias)
+        self.hidden_layer = NeuronLayer(logger, num_hidden, num_inputs, hidden_layer_bias)
+        self.output_layer = NeuronLayer(logger, num_outputs, num_hidden, output_layer_bias)
 
         self.init_weights_from_inputs_to_hidden_layer_neurons(hidden_layer_weights)
         self.init_weights_from_hidden_layer_neurons_to_output_layer_neurons(output_layer_weights)
@@ -138,13 +140,13 @@ class NeuralNetwork(object):
                                "hidden_layer_weights=%s", hidden_layer_weights)
         weight_num = 0
         for h in range(len(self.hidden_layer.neurons)):
-            self.logger.debug("h=%s", h)
+            #self.logger.debug("h=%s", h)
             for i in range(self.num_inputs):
-                self.logger.debug("i=%s", i)
+                #self.logger.debug("i=%s", i)
                 if not hidden_layer_weights:
                     self.hidden_layer.neurons[h].weights.append(random.random())
                 else:
-                    self.logger.debug("h=%s i=%s weight_num=%s", h, i, weight_num)
+                    #self.logger.debug("h=%s i=%s weight_num=%s", h, i, weight_num)
                     self.hidden_layer.neurons[h].weights.append(hidden_layer_weights[weight_num])
             weight_num += 1
 
@@ -232,14 +234,23 @@ class NeuralNetwork(object):
         return total_error
 
 class NeuronLayer(object):
-    def __init__(self, num_neurons, bias):
-
+    def __init__(self, logger, num_neurons, number_of_inputs, bias):
+        """
+        Initialise a neuron layer
+        """
+        logger.info("NeuronLayer initialising with num_neurons=%s "
+                        "number_of_inputs=%s bias=%s", num_neurons,
+                        number_of_inputs, bias)
+        self.logger = logger
         # Every neuron in a layer shares the same bias
         self.bias = bias if bias else random.random()
+        
+        #** Every neuron in a layer is assumed to have same number of inputs
+        self.number_of_inputs = number_of_inputs
 
         self.neurons = []
         for i in range(num_neurons):
-            self.neurons.append(Neuron(self.bias))
+            self.neurons.append(Neuron(logger, number_of_inputs, self.bias))
 
     def inspect(self):
         print('Neurons:', len(self.neurons))
@@ -262,25 +273,47 @@ class NeuronLayer(object):
         return outputs
 
 class Neuron(object):
-    def __init__(self, bias):
+    def __init__(self, logger, number_of_inputs, bias):
+        """
+        Initialise a neuron instance
+        """
+        self.logger = logger
+        self.number_of_inputs = number_of_inputs
         self.bias = bias
         self.weights = []
 
     def calculate_output(self, inputs):
         self.inputs = inputs
-        self.output = self.squash(self.calculate_total_net_input())
+        #self.output = self.squash(self.calculate_total_net_input())
+        self.output = self.__sigmoid(self.calculate_total_net_input())
         return self.output
 
     def calculate_total_net_input(self):
+        """
+        TBD
+        """
         total = 0
-        for i in range(len(self.inputs)):
-            total += self.inputs[i] * self.weights[i]
+        #self.logger.debug("self.number_of_inputs=%s", self.number_of_inputs)
+        for input_ in range(self.number_of_inputs):
+            #self.logger.debug("Neuron input_=%s", input_) 
+            total += self.inputs[input_] * self.weights[input_]
         return total + self.bias
 
-    # Apply the logistic function to squash the output of the neuron
-    # The result is sometimes referred to as 'net' [2] or 'net' [1]
     def squash(self, total_net_input):
+        """
+        Apply the logistic function to squash the output of the neuron
+        The result is sometimes referred to as 'net' [2] or 'net' [1]
+        """
+        self.logger.debug("total_net_input=%s", total_net_input)
         return 1 / (1 + math.exp(-total_net_input))
+
+    def __sigmoid(self, x):
+        """
+        The Sigmoid function, which describes an S shaped curve.
+        We pass the weighted sum of the inputs through this function to
+        normalise them between 0 and 1. Uses exp (e) from numpy.
+        """
+        return 1 / (1 + exp(-x))
 
     # Determine how much the neuron's total input has to change to move closer to the expected output
     #

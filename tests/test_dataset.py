@@ -52,6 +52,18 @@ def test_trim_to_columns():
                                OrderedDict([('alice', '2'), ('charlie', '20')]),
                                OrderedDict([('alice', '3'), ('charlie', '50')])]
 
+def test_duplicate_column():
+    """
+    Test the duplicate_column method
+    """
+    dset = dataset_module.DataSet(logger)
+    dset.ingest('data/test/test1.csv')
+    dset.duplicate_column('alice', 'eve')
+    logger.info("get_data=%s", dset.get_data())
+    assert dset.get_data() == [OrderedDict([('alice', '1'), ('bob', '1'), ('charlie', '10'), ('dave', 'foo'), ('eve', '1')]),
+                               OrderedDict([('alice', '2'), ('bob', '2'), ('charlie', '20'), ('dave', 'bar'), ('eve', '2')]),
+                               OrderedDict([('alice', '3'), ('bob', '4'), ('charlie', '50'), ('dave', 'fighter'), ('eve', '3')])]
+
 def test_rescale():
     """
     Test the rescale method

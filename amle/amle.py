@@ -38,7 +38,7 @@ Principles (aspirational):
 * Add value to experimentation. Support evolutionary genetic
   approach to configuring algorithm parameters
 * Visibility. Make it easy to understand how experiments are
-  running
+  running / ran
 """
 
 #*** For file path:
@@ -131,12 +131,14 @@ class AMLE(BaseClass):
         self._datasets = {}
         #*** Dictionary to hold algorithm objects:
         self._algorithms = {}
+        #*** Dictionary to hold aggregator objects:
+        self._aggregators = {}
 
     def run(self):
         """
         Run AMLE
         """
-        #*** Run, as per project policy. Start with datasets:
+        #*** Load and pre-process datasets:
         policy_datasets = self.policy.get_datasets()
         for policy_dataset in policy_datasets:
             #*** Create dataset object and ingest data from file:
@@ -151,17 +153,80 @@ class AMLE(BaseClass):
         #*** Load algorithms:
         policy_algorithms = self.policy.get_algorithms()
         for policy_algorithm in policy_algorithms:
-            alg = self.load_algorithm(policy_algorithm['code'])
+            alg = self.load_algorithm(policy_algorithm['location'])
             self._algorithms[policy_algorithm['name']] = alg
 
-        #*** Now run experiments:
-        policy_experiments = self.policy.get_experiments()
-        for pol_exp in policy_experiments:
-            #*** Run the experiment:
-            self.logger.debug("running experiment=%s", pol_exp['name'])
-            parameters = pol_exp['parameters']
-            algr = self._algorithms[pol_exp['algorithm']](self.logger)
-            algr.run(self._datasets, parameters)
+        #*** Load aggregators (optional):
+        policy_aggregators = self.policy.get_aggregators()
+        for policy_aggregator in policy_aggregators:
+            agg = self.load_aggregator(policy_aggregator['location'])
+            self._aggregators[policy_aggregator['name']] = agg
+
+        #*** Run section:
+        run_items = self.policy.get_run_items()
+        for run_item in run_items:
+            #*** Run the item:
+            self.logger.debug("running item=%s", run_item['name'])
+            if 'aggregator' in run_item:
+                name = run_item['aggregator']['name']
+                parameters = run_item['aggregator']['parameters']
+                self.run_aggregator(name, parameters)
+            else:
+                #*** No aggregator so run experiment direct:
+                self.run_experiment(run_item['experiment'])
+
+    def run_experiment(self, experiment_name):
+        """
+        Run an experiment, as per spec from policy
+        """
+        self.logger.debug("running experiment=%s", experiment_name)
+        pol_exp = self.policy.get_experiment(experiment_name)
+        algr_name = pol_exp['algorithm']['name']
+        algr_parameters = pol_exp['algorithm']['parameters']
+        self.logger.debug("Initiating algorithm=%s with parameters=%s",
+                                    algr_name, algr_parameters)
+        algr = self._algorithms[algr_name](self.logger, algr_parameters)
+        #*** Run specified methods in experiment class:
+        methods = pol_exp['algorithm']['methods']
+        for method_dict in methods:
+            self.logger.debug("method_dict=%s", method_dict)
+            method = next(iter(method_dict))
+            self.logger.debug("method=%s", method)
+            parameters = method_dict[method]['parameters']
+            self.logger.debug("parameters=%s", parameters)
+            result = getattr(algr, method)(self._datasets, parameters)
+            self.logger.debug("result=%s", result)
+
+    def run_aggregator(self, agg_name, agg_parameters):
+        """
+        Run an aggregator, as per spec from policy
+        """
+        self.logger.debug("Preparing to run aggregator=%s", agg_name)
+        pol_agg = self.policy.get_aggregator(agg_name)
+        self.logger.debug("pol_agg=%s", pol_agg)
+        #*** Start experiment:
+        name = agg_parameters['experiment']
+        #      dataset: training_dataset
+        #      iterations: 60000
+        #      partions_number: 4
+        self.logger.debug("Initialising algorithm for name=%s", name)
+        pol_experiment = self.policy.get_experiment(name)
+        alg_name = pol_experiment['algorithm']['name']
+        alg_parameters = pol_experiment['algorithm']['parameters']
+        self.logger.debug("Initiating algorithm=%s with parameters=%s",
+                                                      alg_name, alg_parameters)
+        alg = self._algorithms[alg_name](self.logger, alg_parameters)
+        agg_parameters['experiment_name'] = name
+        agg_parameters['alg'] = alg
+        agg_parameters['experiment_policy'] = pol_experiment
+
+        #*** Start aggregator:
+        self.logger.debug("Starting aggregator=%s with parameters=%s",
+                                                      agg_name, agg_parameters)
+        agg = self._aggregators[agg_name](self.logger, self._datasets,
+                                                                agg_parameters)
+        result = getattr(agg, 'run')()
+        self.logger.debug("result=%s", result)
 
     def load_algorithm(self, alg_name):
         """
@@ -178,7 +243,7 @@ class AMLE(BaseClass):
         except:
             exc_type, exc_value, exc_traceback = sys.exc_info()
             self.logger.error("Failed to dynamically load "
-                                "module=%s .Please check that module exists "
+                                "module=%s\nPlease check that module exists "
                                 "and alter project_policy configuration "
                                 "if required",
                                 alg_name)
@@ -190,6 +255,35 @@ class AMLE(BaseClass):
         #*** Dynamically instantiate class 'Classifier':
         self.logger.debug("Instantiating module class alg_name=%s", alg_name)
         class_ = getattr(module, 'Algorithm')
+        return class_
+
+    def load_aggregator(self, agg_name):
+        """
+        Passed file location for an aggregator
+        module and return it as an object
+        """
+        self.logger.debug("Loading aggregator=%s", agg_name)
+        #*** Replace directory forward slashes with dots, Unix-specific:
+        agg_name = agg_name.replace("/", ".")
+        self.logger.debug("module=%s", agg_name)
+        #*** Try importing the module:
+        try:
+            module = importlib.import_module(agg_name)
+        except:
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            self.logger.error("Failed to dynamically load "
+                                "module=%s\nPlease check that module exists "
+                                "and alter project_policy configuration "
+                                "if required",
+                                agg_name)
+            self.logger.error("Exception is %s, %s, %s",
+                                            exc_type, exc_value,
+                                            traceback.format_tb(exc_traceback))
+            sys.exit("Exiting, please fix error...")
+
+        #*** Dynamically instantiate class 'Aggregator':
+        self.logger.debug("Instantiating module class agg_name=%s", agg_name)
+        class_ = getattr(module, 'Aggregator')
         return class_
 
 def print_help():

@@ -4,6 +4,8 @@
 #
 #*** Written in YAML
 #
+amle_syntax_version: 1
+#
 datasets:
     - name: training_dataset
       source:
@@ -13,6 +15,8 @@ datasets:
             - test:
                 - brianfm.streamon.fm
                 - www.victoria.ac.nz/ecs
+                - www.bbc.co.uk
+                - www.paypal.com
         - trim_to_columns:
             - type
             - packet_size_7
@@ -32,18 +36,42 @@ datasets:
                 browsing: 0
         - set_output_columns:
             - type
+        - shuffle: 1
+        - partition:
+            - Training
+            - Training
+            - Training
+            - Validation
         - display: print
 #
 algorithms:
-    # ML Algorithms to load
-    - name: ANN_custom_2_layer
-      code: algorithms/user/mlnn
+    # Testing algorithms to load:
+    - name: ANN_simple_2_layer
+      location: algorithms/samples/mlnn/mlnn
+#
+aggregators:
+    # Algorithms that run experiments and aggregate results
+    - name: cross_validator_1
+      location: aggregators/samples/cross_validator_1/cross_validator_1
 #
 experiments:
     - name: experiment_1
-      training_data: training_dataset
-      algorithm: ANN_custom_2_layer
-      parameters:
-          training_dataset: training_dataset
-          neurons: 4
-          inputs: 6
+      algorithm:
+          name: ANN_simple_2_layer
+          parameters:
+              input_neurons: 3
+              input_variables: 6
+              random_seed: 1
+#
+run:
+    - name: run_experiment_1
+      aggregator:
+          name: cross_validator_1
+          parameters:
+              experiment: experiment_1
+              dataset: training_dataset
+              iterations: 60000
+              partions_number: 4
+              result_range: 1
+              result_threshold: 0.1
+

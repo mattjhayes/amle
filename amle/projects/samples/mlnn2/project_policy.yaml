@@ -31,7 +31,7 @@ datasets:
 algorithms:
     # ML Algorithms to load
     - name: ANN_simple_2_layer
-      location: algorithms/samples/mlnn/mlnn
+      location: algorithms/samples/mlnn/mlnn2
 #
 experiments:
     - name: experiment_1

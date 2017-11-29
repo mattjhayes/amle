@@ -6,12 +6,18 @@ AMLE dataset.py Unit Tests
 import sys
 sys.path.insert(0, '../amle')
 
+#*** Testing imports:
+import unittest
+
 #*** Logging:
 import logging
 import coloredlogs
 
 #*** Ordered Dictionaries:
 from collections import OrderedDict
+
+#*** numpy for mathematical functions:
+from numpy import array_equal
 
 #*** AMLE imports:
 import dataset as dataset_module
@@ -70,10 +76,104 @@ def test_translate():
                                OrderedDict([('alice', '2'), ('bob', '2'), ('charlie', '20'), ('dave', 1)]),
                                OrderedDict([('alice', '3'), ('bob', '4'), ('charlie', '50'), ('dave', 0)])]
 
-def test_set_output_columns():
+def test_shuffle():
     """
-    Test the set_output_columns method
+    Test the shuffle method, setting random seed for predictable test result
     """
     dset = dataset_module.DataSet(logger)
     dset.ingest('data/test/test1.csv')
-    # TBD
+    dset.shuffle(seed=1)
+    logger.info("get_data=%s", dset.get_data())
+    assert dset.get_data() == [OrderedDict([('alice', '2'), ('bob', '2'), ('charlie', '20'), ('dave', 'bar')]),
+                               OrderedDict([('alice', '3'), ('bob', '4'), ('charlie', '50'), ('dave', 'fighter')]),
+                               OrderedDict([('alice', '1'), ('bob', '1'), ('charlie', '10'), ('dave', 'foo')])]
+
+def test_partition():
+    """
+    Test the partition method and ensure it produces
+    anticipated results when dataset outputs are requested
+    """
+    #===================================
+    #*** TEST 1:
+    dset = dataset_module.DataSet(logger)
+    dset.ingest('data/test/test1.csv')
+    dset.translate('dave', {'foo': 0, 'bar': 0.5, 'fighter': 1})
+    dset.partition(['Training', 'Validation'])
+    
+    #** Comparison that is trimmed to rows to equal partition result:
+    dset2 = dataset_module.DataSet(logger)
+    dset2.ingest('data/test/test1.csv')
+    dset2.trim_to_rows('dave', ['foo', 'fighter'])
+    dset2.translate('dave', {'foo': 0, 'bar': 0.5, 'fighter': 1})
+
+    logger.info("dset  inputs_array=%s", dset.inputs_array(partition='Training'))
+    logger.info("dset2 inputs_array=%s", dset2.inputs_array())
+
+    #*** Use a numpy function to compare arrays:
+    assert array_equal(dset.inputs_array(partition='Training'), dset2.inputs_array())
+
+    #===================================
+    #*** TEST 2:
+    dset = dataset_module.DataSet(logger)
+    dset.ingest('data/test/test1.csv')
+    dset.translate('dave', {'foo': 0, 'bar': 0.5, 'fighter': 1})
+    dset.partition(['Training', 'Training', 'Training', 'Validation'])
+    
+    #** Comparison array:
+    dset2 = dataset_module.DataSet(logger)
+    dset2.ingest('data/test/test1.csv')
+    dset2.translate('dave', {'foo': 0, 'bar': 0.5, 'fighter': 1})
+
+    logger.info("dset  inputs_array=%s", dset.inputs_array(partition='Training'))
+    logger.info("dset2 inputs_array=%s", dset2.inputs_array())
+
+    #*** Use a numpy function to compare arrays:
+    assert array_equal(dset.inputs_array(partition='Training'), dset2.inputs_array())
+
+    #===================================
+    #*** TEST 3 (outputs_array test):
+    dset = dataset_module.DataSet(logger)
+    dset.ingest('data/test/test1.csv')
+    dset.translate('dave', {'foo': 0, 'bar': 0.5, 'fighter': 1})
+    dset.set_output_columns(['bob', 'charlie'])
+    dset.partition(['Training', 'Training', 'Validation'])
+    
+    #** Comparison array:
+    dset2 = dataset_module.DataSet(logger)
+    dset2.ingest('data/test/test1.csv')
+    dset2.trim_to_rows('dave', ['foo', 'bar'])
+    dset2.translate('dave', {'foo': 0, 'bar': 0.5, 'fighter': 1})
+    dset2.set_output_columns(['bob', 'charlie'])
+
+    logger.info("dset  outputs_array=%s", dset.outputs_array(partition='Training'))
+    logger.info("dset2 outputs_array=%s", dset2.outputs_array())
+
+    #*** Use a numpy function to compare arrays:
+    assert array_equal(dset.outputs_array(partition='Training'), dset2.outputs_array())
+
+def test_in_partition():
+    """
+    Test the in_partition method
+    """
+    dset = dataset_module.DataSet(logger)
+    dset.partition(partitions=["one", "two", "three", "four", "five"])
+    assert dset.in_partition('one', 0) == 1
+    assert dset.in_partition('two', 1) == 1
+    assert dset.in_partition('three', 2) == 1
+    assert dset.in_partition('four', 3) == 1
+    assert dset.in_partition('five', 4) == 1
+    assert dset.in_partition('one', 5) == 1
+    assert dset.in_partition('two', 6) == 1
+    assert dset.in_partition('three', 7) == 1
+    assert dset.in_partition('four', 8) == 1
+    assert dset.in_partition('five', 9) == 1
+    #*** Counter cases:
+    assert dset.in_partition('one', 21) == 0
+    assert dset.in_partition('two', 22) == 0
+    assert dset.in_partition('three', 23) == 0
+    assert dset.in_partition('four', 24) == 0
+    assert dset.in_partition('five', 25) == 0
+
+
+
+        

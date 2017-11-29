@@ -61,9 +61,12 @@ def validate(logger, data, schema, where):
 
 #*** Voluptuous schema keys / value types in the policy:
 TOP_LEVEL_SCHEMA = Schema({
+                        Required('amle_syntax_version'): int,
                         Required('datasets'): list,
                         Required('algorithms'): list,
-                        Required('experiments'): list
+                        Optional('aggregators'): list,
+                        Required('experiments'): list,
+                        Required('run'): list
                         })
 DATASET_SCHEMA = Schema({
                         Required('name'): str,
@@ -76,10 +79,11 @@ TRANSFORM_SCHEMA = Schema([{
                         Optional('rescale'): list,
                         Optional('translate'): list,
                         Optional('set_output_columns'): list,
-                        Optional('display'): str
+                        Optional('display'): str,
+                        Optional('shuffle'): int,
+                        Optional('partition'): list
                         }
                         ])
-
 
 class Policy(BaseClass):
     """
@@ -147,11 +151,54 @@ class Policy(BaseClass):
             result.append(algorithm)
         return result
 
+    def get_aggregators(self):
+        """
+        Return a list of policy aggregators
+        """
+        result = []
+        if 'aggregators' in self.policy:
+            for aggregator in self.policy['aggregators']:
+                result.append(aggregator)
+        else:
+            self.logger.info("No aggregators in policy, skipping...")
+        return result
+
     def get_experiments(self):
         """
         Return a list of policy experiments
         """
         result = []
-        for algorithm in self.policy['experiments']:
-            result.append(algorithm)
+        for experiment in self.policy['experiments']:
+            result.append(experiment)
+        return result
+
+    def get_experiment(self, name):
+        """
+        Return policy for a named experiment
+        """
+        for experiment in self.policy['experiments']:
+            if experiment['name'] == name:
+                return experiment
+        #*** Didn't find name, error and exit:
+        self.logger.error("Failed to find experiment name=%s", name)
+        sys.exit("Please fix error in " + POLICY_FILENAME)
+
+    def get_aggregator(self, name):
+        """
+        Return policy for a named aggregator
+        """
+        for aggregator in self.policy['aggregators']:
+            if aggregator['name'] == name:
+                return aggregator
+        #*** Didn't find name, error and exit:
+        self.logger.error("Failed to find aggregator name=%s", name)
+        sys.exit("Please fix error in " + POLICY_FILENAME)
+
+    def get_run_items(self):
+        """
+        Return a list of run items
+        """
+        result = []
+        for run_item in self.policy['run']:
+            result.append(run_item)
         return result

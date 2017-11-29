@@ -19,6 +19,7 @@ learning (ML).
 
 import os
 import sys
+import random
 
 #*** CSV library:
 import csv
@@ -44,7 +45,10 @@ class DataSet(object):
         #*** List of dictionaries (rows) that holds the data:
         self._data = []
         #*** Subset of data that contains column names for output data:
-        self.output_columns = []
+        self._output_columns = []
+        #*** Default partition configuration:
+        self._divisor = 1
+        self._partitions = ['A']
 
     def get_data(self):
         """
@@ -59,7 +63,7 @@ class DataSet(object):
         Pass it a list of output column names
         """
         self.logger.debug("Setting output_columns=%s", output_columns)
-        self.output_columns = output_columns
+        self._output_columns = output_columns
 
     def set_name(self, name):
         """
@@ -117,19 +121,80 @@ class DataSet(object):
             elif 'trim_to_columns' in tform:
                 self.trim_to_columns(tform['trim_to_columns'])
             elif 'rescale' in tform:
-                rdict = tform['rescale'][0]
-                self.rescale(rdict['column'], rdict['min'], rdict['max'])
+                for rdict in tform['rescale']:
+                    self.rescale(rdict['column'], rdict['min'], rdict['max'])
             elif 'translate' in tform:
                 rlist = tform['translate']
                 self.translate(rlist[0]['column'], rlist[1]['values'])
             elif 'set_output_columns' in tform:
                 self.set_output_columns(tform['set_output_columns'])
+            elif 'shuffle' in tform:
+                self.shuffle(seed=tform['shuffle'])
+            elif 'partition' in tform:
+                self.partition(tform['partition'])
             elif 'display' in tform:
                 self.display(tform['display'])
             else:
                 self.logger.critical("Unsupported transform=%s, exiting...",
                                                                          tform)
                 sys.exit()
+
+    def shuffle(self, seed=0):
+        """
+        Shuffle dataset rows.
+        Set seed=1 if want predictable randomness for reproduceable
+        shuffling
+        """
+        if seed:
+            random.Random(4).shuffle(self._data)
+        else:
+            random.shuffle(self._data)
+
+    def partition(self, partitions):
+        """
+        Set partition parameters for split of dataset into
+        arbitrary partitions, which are named by strings.
+        Note that partitioning is applied when data is retrieved,
+        not to internal dataset
+
+        Passed a list of partition names which are used to divide
+        the dataset based on modulo division by the length of
+        the list.
+
+        Setting partitions overwrites any previously set
+        partition configuration
+
+        Default partition is partitions=['A']
+        (i.e. all data in partition 'A')
+
+        Standard convention for usage of partitions is:
+        * Partition 'Training' is used as training data
+        * Partition 'Validation' is used as validation (test) data
+
+        Example: Randomise row order, then allocate 75% of rows to
+        partition 'Training' with the last 25% in partition 'Validation':
+          dataset.shuffle()
+          dataset.partition(partitions=['Training', 'Training',
+                                        'Training', 'Validation'])
+        """
+        self._partitions = partitions
+        self._divisor = len(partitions)
+
+    def in_partition(self, partition_name, row_number):
+        """
+        Passed a partition name, row number and total number of
+        rows in the dataset and after consulting internal
+        partition settings, return a 1 if the given row
+        belongs to the partition, otherwise 0
+        """
+        remainder = row_number % self._divisor
+        return self._partitions[remainder] == partition_name
+
+    def partition_sets(self):
+        """
+        Return the number of sets in the partition
+        """
+        return self._divisor
 
     def translate(self, column_name, value_mapping):
         """
@@ -175,19 +240,22 @@ class DataSet(object):
                     result.append(row)
         self._data = result
 
-    def inputs_array(self):
+    def inputs_array(self, partition='A'):
         """
         Return input data as a numpy array
-        Filter out output column(s)
+        Filter out output column(s) and only include
+        rows from specified partition, which defaults
+        to 'A'
         """
         #*** Create a subset without the output column(s):
         data_input_subset = []
-        for row in self._data:
-            row_result = OrderedDict()
-            for row_item_key in row:
-                if row_item_key not in self.output_columns:
-                    row_result[row_item_key] = row[row_item_key]
-            data_input_subset.append(row_result)
+        for index, row in enumerate(self._data):
+            if self.in_partition(partition, index):
+                row_result = OrderedDict()
+                for row_item_key in row:
+                    if row_item_key not in self._output_columns:
+                        row_result[row_item_key] = row[row_item_key]
+                data_input_subset.append(row_result)
         #*** Now convert into numpy array:
         list_of_lists = []
         for row in data_input_subset:
@@ -196,19 +264,20 @@ class DataSet(object):
             list_of_lists.append(row)
         return array(list_of_lists)
 
-    def outputs_array(self):
+    def outputs_array(self, partition='A'):
         """
         Return output data as a numpy array
         Filter out input columns
         """
         #*** Create a subset without the input column(s):
         data_output_subset = []
-        for row in self._data:
-            row_result = OrderedDict()
-            for row_item_key in row:
-                if row_item_key in self.output_columns:
-                    row_result[row_item_key] = row[row_item_key]
-            data_output_subset.append(row_result)
+        for index, row in enumerate(self._data):
+            if self.in_partition(partition, index):
+                row_result = OrderedDict()
+                for row_item_key in row:
+                    if row_item_key in self._output_columns:
+                        row_result[row_item_key] = row[row_item_key]
+                data_output_subset.append(row_result)
         #*** Now convert into numpy array:
         list_of_lists = []
         for row in data_output_subset:

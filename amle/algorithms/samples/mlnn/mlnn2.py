@@ -33,8 +33,10 @@ from numpy import exp
 #   http://en.wikipedia.org/wiki/Backpropagation#Finding_the_derivative_of_the_error
 # [2] Neural Networks for Machine Learning course on Coursera by Geoffrey Hinton
 #   https://class.coursera.org/neuralnets-2012-001/lecture/39
+#   (doesn't work anymore)
 # [3] The Back Propagation Algorithm
 #   https://www4.rgu.ac.uk/files/chapter3%20-%20bp.pdf
+#   (doesn't work anymore)
 
 class Algorithm(object):
     """
@@ -85,6 +87,13 @@ class Algorithm(object):
         training_inputs = training_dset.inputs_array(partition=partition)
         training_outputs = training_dset.outputs_array(partition=partition)
         
+        #*** Convert from numpy array to nested list:
+        training_inputs = training_inputs.tolist()
+        training_outputs = training_outputs.tolist()
+        
+        # TEMP: check type:
+        print "type is ", type(training_inputs[0][0])
+        
         self.logger.debug("training_inputs=\n%s", training_inputs)
         self.logger.debug("training_outputs=\n%s", training_outputs)
 
@@ -93,18 +102,36 @@ class Algorithm(object):
         for i in range(iterations):
             self.nn.train(training_inputs, training_outputs)
 
+        #*** Display how neurons have been trained:
         self.logger.debug("Trained weights:")
-        # TBD:
-        #self.logger.debug(" - Layer 1:\n%s", self.layer1.synaptic_weights)
-        #self.logger.debug(" - Layer 2:\n%s", self.layer2.synaptic_weights)
+        self.nn.inspect()
 
     def test(self, datasets, parameters):
         """
         Ask the multi-layer neural network for an answer to a situation
         and check result accuracy
         """
-        # TBD
-        pass
+        #*** Retrieve parameters passed to us:
+        dataset = parameters['dataset']
+        partition = parameters['partition']
+
+        #*** Get the dataset ready:
+        test_dset = datasets[dataset]
+        test_inputs = test_dset.inputs_array(partition=partition)
+        test_outputs = test_dset.outputs_array(partition=partition)
+
+        self.logger.debug("test_inputs=\n%s", test_inputs)
+        self.logger.debug("test_outputs=\n%s", test_outputs)
+
+        #*** Run thinking tests:
+        results = []
+        for index, input_array in enumerate(test_inputs):
+            self.logger.debug("input_array=%s", input_array)
+            output = self.nn.think(input_array)
+            self.logger.debug("Thinking output=%s", output)
+            self.logger.debug("correct output=%s", test_outputs[index])
+            results.append({'computed': output[0], 'actual': test_outputs[index][0]})
+        return results
 
 class NeuralNetwork(object):
     LEARNING_RATE = 0.5
@@ -166,6 +193,9 @@ class NeuralNetwork(object):
                 weight_num += 1
 
     def inspect(self):
+        """
+        Display weightings and biases
+        """
         print('------')
         print('* Inputs: {}'.format(self.num_inputs))
         print('------')
@@ -177,11 +207,26 @@ class NeuralNetwork(object):
         print('------')
 
     def feed_forward(self, inputs):
+        """
+        TBD
+        """
         hidden_layer_outputs = self.hidden_layer.feed_forward(inputs)
+        return self.output_layer.feed_forward(hidden_layer_outputs)
+
+    def think(self, inputs):
+        """
+        Provide a set of inputs to the algorithm and return output(s)
+        """
+        self.logger.debug("NeuralNetwork thinking...")
+        hidden_layer_outputs = self.hidden_layer.think_layer(inputs)
+        self.logger.debug("NeuralNetwork hidden_layer_outputs=%s", hidden_layer_outputs)
         return self.output_layer.feed_forward(hidden_layer_outputs)
 
     # Uses online learning, ie updating the weights after each training case
     def train(self, training_inputs, training_outputs):
+        """
+        TBD
+        """
         self.feed_forward(training_inputs)
 
         # 1. Output neuron deltas
@@ -225,6 +270,9 @@ class NeuralNetwork(object):
                 self.hidden_layer.neurons[h].weights[w_ih] -= self.LEARNING_RATE * pd_error_wrt_weight
 
     def calculate_total_error(self, training_sets):
+        """
+        TBD
+        """
         total_error = 0
         for t in range(len(training_sets)):
             training_inputs, training_outputs = training_sets[t]
@@ -236,7 +284,7 @@ class NeuralNetwork(object):
 class NeuronLayer(object):
     def __init__(self, logger, num_neurons, number_of_inputs, bias):
         """
-        Initialise a neuron layer
+        Initialise a neuron layer (multiple neurons)
         """
         logger.info("NeuronLayer initialising with num_neurons=%s "
                         "number_of_inputs=%s bias=%s", num_neurons,
@@ -253,6 +301,9 @@ class NeuronLayer(object):
             self.neurons.append(Neuron(logger, number_of_inputs, self.bias))
 
     def inspect(self):
+        """
+        TBD
+        """
         print('Neurons:', len(self.neurons))
         for n in range(len(self.neurons)):
             print(' Neuron', n)
@@ -261,12 +312,30 @@ class NeuronLayer(object):
             print('  Bias:', self.bias)
 
     def feed_forward(self, inputs):
+        """
+        TBD
+        """
         outputs = []
         for neuron in self.neurons:
             outputs.append(neuron.calculate_output(inputs))
         return outputs
 
+    def think_layer(self, inputs):
+        """
+        *** TEMP ***
+        """
+        outputs = []
+        for neuron in self.neurons:
+            output = neuron.calculate_output(inputs)
+            self.logger.debug("NeuronLayer calculating neuron output=%s", output)
+            outputs.append(output)
+        self.logger.debug("outputs=%s", outputs)
+        return outputs
+
     def get_outputs(self):
+        """
+        TBD
+        """
         outputs = []
         for neuron in self.neurons:
             outputs.append(neuron.output)
@@ -283,9 +352,12 @@ class Neuron(object):
         self.weights = []
 
     def calculate_output(self, inputs):
+        """
+        TBD
+        """
         self.inputs = inputs
-        #self.output = self.squash(self.calculate_total_net_input())
-        self.output = self.__sigmoid(self.calculate_total_net_input())
+        self.output = self.squash(self.calculate_total_net_input())
+        #self.output = self.__sigmoid(self.calculate_total_net_input())
         return self.output
 
     def calculate_total_net_input(self):
@@ -293,9 +365,10 @@ class Neuron(object):
         TBD
         """
         total = 0
-        #self.logger.debug("self.number_of_inputs=%s", self.number_of_inputs)
+        self.logger.debug("self.number_of_inputs=%s", self.number_of_inputs)
         for input_ in range(self.number_of_inputs):
-            #self.logger.debug("Neuron input_=%s", input_) 
+            self.logger.debug("self.inputs[input_]=%s type=%s", self.inputs[input_], type(self.inputs[input_][0]))
+            self.logger.debug("self.weights[input_]=%s type=%s", self.weights[input_], type(self.weights[input_]))
             total += self.inputs[input_] * self.weights[input_]
         return total + self.bias
 
@@ -324,10 +397,16 @@ class Neuron(object):
     # δ = ∂E/∂zⱼ = ∂E/∂yⱼ * dyⱼ/dzⱼ
     #
     def calculate_pd_error_wrt_total_net_input(self, target_output):
+        """
+        TBD
+        """
         return self.calculate_pd_error_wrt_output(target_output) * self.calculate_pd_total_net_input_wrt_input();
 
     # The error for each neuron is calculated by the Mean Square Error method:
     def calculate_error(self, target_output):
+        """
+        TBD
+        """
         return 0.5 * (target_output - self.output) ** 2
 
     # The partial derivate of the error with respect to actual output then is calculated by:
@@ -342,6 +421,9 @@ class Neuron(object):
     # Note that the actual output of the output neuron is often written as yⱼ and target output as tⱼ so:
     # = ∂E/∂yⱼ = -(tⱼ - yⱼ)
     def calculate_pd_error_wrt_output(self, target_output):
+        """
+        TBD
+        """
         return -(target_output - self.output)
 
     # The total net input into the neuron is squashed using logistic function to calculate the neuron's output:
@@ -351,6 +433,9 @@ class Neuron(object):
     # The derivative (not partial derivative since there is only one variable) of the output then is:
     # dyⱼ/dzⱼ = yⱼ * (1 - yⱼ)
     def calculate_pd_total_net_input_wrt_input(self):
+        """
+        TBD
+        """
         return self.output * (1 - self.output)
 
     # The total net input is the weighted sum of all the inputs to the neuron and their respective weights:
@@ -359,6 +444,9 @@ class Neuron(object):
     # The partial derivative of the total net input with respective to a given weight (with everything else held constant) then is:
     # = ∂zⱼ/∂wᵢ = some constant + 1 * xᵢw₁^(1-0) + some constant ... = xᵢ
     def calculate_pd_total_net_input_wrt_weight(self, index):
+        """
+        TBD
+        """
         return self.inputs[index]
 
 ###

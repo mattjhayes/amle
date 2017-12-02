@@ -18,6 +18,7 @@ Evaluate library provides a class with methods to evaluate result
 data against desired results
 """
 
+#*** Necessary to make division return a float:
 from __future__ import division
 
 class Evaluate(object):

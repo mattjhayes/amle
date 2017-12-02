@@ -26,3 +26,20 @@ Pass it a list of output column names
         - Iris-setosa
         - Iris-versicolor
         - Iris-virginica
+
+one_hot_encode
+==============
+
+Creates new column(s) with one hot encoded values. This is useful when you
+have more than two result types in a column.
+
+  Example:
+
+  .. code-block:: text
+
+        - one_hot_encode:
+            - column: class
+            - values:
+                Iris-setosa: 1
+                Iris-versicolor: 1
+                Iris-virginica: 1

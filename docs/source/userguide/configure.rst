@@ -33,6 +33,12 @@ one_hot_encode
 Creates new column(s) with one hot encoded values. This is useful when you
 have more than two result types in a column.
 
+You need to specify a column that is used as the source for creating one-hot-encoded
+columns. Note that this specified column is not updated.
+
+Values in the column are listed that should be used to create new one-hot-encoded
+columns. Note that the value is used as the column name.
+
   Example:
 
   .. code-block:: text

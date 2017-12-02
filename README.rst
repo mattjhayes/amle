@@ -2,8 +2,8 @@ Automated Machine Learning Environment (AMLE)
 =============================================
 
 AMLE is a simple unopinionated framework for experimenting with
-machine learning (ML). I built it to help me learn ML and
-to reduce my workload running ML experiments by automating repeatable tasks.
+machine learning (ML). I built it to help me learn ML, and
+to reduce my workload running ML experiments, by automating repeatable tasks.
 
 It is a perfect example of
 `Not Invented, Here <https://en.wikipedia.org/wiki/Not_invented_here>`_

@@ -19,7 +19,7 @@ Contents:
    userguide/configure
    userguide/recipes
    userguide/install
-
+   modules
 
 
 Indices and tables

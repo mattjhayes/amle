@@ -2,4 +2,3 @@
 coloredlogs
 voluptuous
 numpy
-yaml

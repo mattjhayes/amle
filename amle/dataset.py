@@ -65,6 +65,16 @@ class DataSet(object):
         self.logger.debug("Setting output_columns=%s", output_columns)
         self._output_columns = output_columns
 
+    def duplicate_column(self, current_column_name, new_column_name):
+        """
+        Passed name of a current column and copy that column to a new
+        column with name passed for new column name
+        """
+        self.logger.debug("Duplicating column=%s to column=%s",
+                                          current_column_name, new_column_name)
+        for row in self._data:
+            row[new_column_name] = row[current_column_name]
+
     def set_name(self, name):
         """
         Set the name for the dataset
@@ -128,6 +138,8 @@ class DataSet(object):
                 self.translate(rlist[0]['column'], rlist[1]['values'])
             elif 'set_output_columns' in tform:
                 self.set_output_columns(tform['set_output_columns'])
+            elif 'duplicate_column' in tform:
+                self.duplicate_column(tform['duplicate_column'])
             elif 'shuffle' in tform:
                 self.shuffle(seed=tform['shuffle'])
             elif 'partition' in tform:

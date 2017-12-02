@@ -9,9 +9,11 @@ Based on:
                             -layered-neural-network-in-python-53ec3d1d326a
 """
 
+import sys
+
 import copy
 
-from numpy import exp, array, random, dot
+from numpy import exp, random, dot
 
 class Algorithm(object):
     """
@@ -22,10 +24,13 @@ class Algorithm(object):
         Initialise the algorithm
         """
         self.logger = logger
+
         #*** Retrieve parameters passed to us:
-        self.input_variables = parameters['input_variables']
-        self.input_neurons = parameters['input_neurons']
         self.seed = parameters['random_seed']
+
+        #*** list with dict per layer specifing number of inputs,
+        #*** number of neurons and arbitrary layer name.
+        self.layers_config = parameters['layers_config']
 
         #*** Seed the random number generator:
         if self.seed:
@@ -34,19 +39,16 @@ class Algorithm(object):
         #*** Create NeuralNetwork instance:
         self.neuralnet = NeuralNetwork(logger)
 
-        # TBD: do this from passed parameters:
-        #*** Add neural layers:
-        self.neuralnet.add_layer(inputs=3, neurons=4, name="hidden_layer")
-        self.neuralnet.add_layer(inputs=4, neurons=1, name="output_layer")
+        #*** Add neural layers to network:
+        self.neuralnet.add_layers(self.layers_config)
 
     def initialise(self):
         """
         Use this to re-initialise before re-training
         """
-        #*** Reinitialise the neurons:
-        #self.layer1 = NeuronLayer(self.logger, self.input_neurons, self.input_variables)
-        #self.layer2 = NeuronLayer(self.logger, 1, self.input_neurons)
-        #self.neural_network = NeuralNetwork(self.layer1, self.layer2)
+        self.neuralnet.delete_layers()
+        #*** Add neural layers to network:
+        self.neuralnet.add_layers(self.layers_config)
 
     def train(self, datasets, parameters):
         """
@@ -96,7 +98,8 @@ class Algorithm(object):
             output = self.neuralnet.think(input_array)
             self.logger.debug("output=%s", output)
             self.logger.debug("correct output=%s", test_outputs[index])
-            results.append({'computed': output[0], 'actual': test_outputs[index][0]})
+            results.append({'computed': output[0],
+                                             'actual': test_outputs[index][0]})
         return results
 
 class NeuralNetwork(object):
@@ -113,12 +116,39 @@ class NeuralNetwork(object):
         #*** Name string for debug etc:
         self.name = ""
 
+    def add_layers(self, layers_config):
+        """
+        Add neural network layers as per a config. Passed a
+        list with dict per layer specifing number of inputs,
+        number of neurons and arbitrary layer name.
+        List index 0 is first layer (no separate input layer).
+        Last configured layer is output layer.
+        """
+        prev_neurons = 0
+        for cfg in layers_config:
+            self.add_layer(inputs=cfg['inputs'],
+                                      neurons=cfg['neurons'], name=cfg['name'])
+            #*** Sanity check on number of inputs:
+            if prev_neurons and prev_neurons != cfg['inputs']:
+                self.logger.critical("Neural network topology error: Trying to"
+                               " feed %s inputs into %s neurons in layer=%s. ",
+                                      prev_neurons, cfg['inputs'], cfg['name'])
+                self.logger.critical("Please fix in project_policy.yaml")
+                sys.exit()
+            prev_neurons = cfg['neurons']
+
     def add_layer(self, inputs, neurons, name):
         """
         Add a layer
         Last configured layer is assumed to be output layer
         """
         self.layers.append(NeuralLayer(self.logger, inputs, neurons, name))
+
+    def delete_layers(self):
+        """
+        Delete all layers
+        """
+        self.layers = []
 
     def train(self, inputs, outputs, iterations):
         """
@@ -130,24 +160,29 @@ class NeuralNetwork(object):
             #*** Pass the training input set through the neural network:
             layer_outputs = self.feed_forward(inputs)
 
-            #*** Work backward through the layers adjusting weights:
+            #*** Work backward through each layer calculating errors and
+            #*** adjusting weights:
             for index, layer in reversed(list(enumerate(self.layers))):
                 if output_layer:
+                    #*** Special case for output layer:
                     layer_error = outputs - layer_outputs[index]
                     output_layer = 0
                 else:
                     layer_error = layer_delta.dot(prev_synaptic_weights.T)
 
+                #*** Calculate the gradient for error correction:
                 layer_delta = layer_error * sigmoid_derivative(layer_outputs[index])
 
                 #*** Calculate weight adjustment for the layer:
                 if index > 0:
                     layer_adjustment = layer_outputs[index - 1].T.dot(layer_delta)
                 else:
+                    #*** Special case for first layer, use inputs:
                     layer_adjustment = inputs.T.dot(layer_delta)
-                
+
+                #*** Copy for use in next iteration:
                 prev_synaptic_weights = copy.copy(layer.synaptic_weights)
-                
+
                 #*** Adjust the layer weights:
                 layer.synaptic_weights += layer_adjustment
 

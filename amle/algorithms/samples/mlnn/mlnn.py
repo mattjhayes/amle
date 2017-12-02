@@ -45,7 +45,7 @@ class Algorithm(object):
         #*** Reinitialise the neurons:
         self.layer1 = NeuronLayer(self.logger, self.input_neurons, self.input_variables)
         self.layer2 = NeuronLayer(self.logger, 1, self.input_neurons)
-        self.neural_network = NeuralNetwork(self.layer1, self.layer2)
+        self.neural_network = NeuralNetwork(self.logger, self.layer1, self.layer2)
 
     def train(self, datasets, parameters):
         """

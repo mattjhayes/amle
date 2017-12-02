@@ -1,0 +1,4 @@
+#*** Used for ReadtheDocs virtualenv loading of modules:
+coloredlogs
+voluptuous
+numpy

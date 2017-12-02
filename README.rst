@@ -7,8 +7,8 @@ to reduce my workload running ML experiments by automating repeatable tasks.
 
 It is a perfect example of
 `Not Invented, Here <https://en.wikipedia.org/wiki/Not_invented_here>`_
-as you can find more performant and fully featured environments elsewhere
-so please consider alternatives like R or existing Python ML libraries.
+as you can find more performant and fully featured environments elsewhere,
+so please consider alternatives like R, or existing Python ML libraries.
 
 The code is still very much under construction.
 
@@ -25,3 +25,5 @@ It is built to the following (aspirational) principles:
   approach to configuring algorithm parameters (TBD)
 * Visibility. Make it easy to understand how experiments are
   running / ran (TBD)
+
+Documentation may one day be available on `Read the Docs <automated-machine-learning-environment-amle.readthedocs.io/>`_

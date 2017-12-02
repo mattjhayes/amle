@@ -39,6 +39,8 @@ columns. Note that this specified column is not updated.
 Values in the column are listed that should be used to create new one-hot-encoded
 columns. Note that the value is used as the column name.
 
+Be careful to avoid column name collisions.
+
   Example:
 
   .. code-block:: text

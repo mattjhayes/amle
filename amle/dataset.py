@@ -65,6 +65,36 @@ class DataSet(object):
         self.logger.debug("Setting output_columns=%s", output_columns)
         self._output_columns = output_columns
 
+    def one_hot_encode(self, column_name, key_values):
+        """
+        Take an existing column and use it to build new columns
+        that are each one hot encoded for one of the specified keys.
+        
+        Supplied with the column_name string and an ordered dictionary
+        (key_values) that has the specific 
+        key names to build new columns for and the
+        value to use for where that key is present in the original column
+        """
+        self.logger.debug("One hot encoding column_name=%s", column_name)
+        #*** Sanity check on input:
+        assert isinstance(key_values, OrderedDict)
+        result = []
+        for row in self._data:
+            #*** Create new column data for the nominated keys:
+            for key, value in key_values.items():
+                #*** Sanity check new column name does not collide:
+                if key in row:
+                    self.logger.critical("Column name collision key=%s", key)
+                    sys.exit()
+                if row[column_name] == key:
+                    #*** Set nominated match value:
+                    row[key] = value
+                else:
+                    #*** Set zero value:
+                    row[key] = 0
+            result.append(row)
+        self._data = result
+
     def duplicate_column(self, current_column_name, new_column_name):
         """
         Passed name of a current column and copy that column to a new
@@ -146,6 +176,8 @@ class DataSet(object):
                 self.partition(tform['partition'])
             elif 'display' in tform:
                 self.display(tform['display'])
+            elif 'one_hot_encode' in tform:
+                self.one_hot_encode(tform['one_hot_encode'])
             else:
                 self.logger.critical("Unsupported transform=%s, exiting...",
                                                                          tform)

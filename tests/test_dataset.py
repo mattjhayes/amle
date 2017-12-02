@@ -88,6 +88,30 @@ def test_translate():
                                OrderedDict([('alice', '2'), ('bob', '2'), ('charlie', '20'), ('dave', 1)]),
                                OrderedDict([('alice', '3'), ('bob', '4'), ('charlie', '50'), ('dave', 0)])]
 
+def test_one_hot_encode():
+    """
+    Test the one_hot_encode method
+    """
+    #*** Test standard one hot encoding but with one match value set to two instead of one:
+    dset = dataset_module.DataSet(logger)
+    dset.ingest('data/test/test1.csv')
+    key_values = OrderedDict([('foo', 1), ('bar', 1), ('fighter', 2)])
+    dset.one_hot_encode('dave', key_values)
+    logger.info("get_data=%s", dset.get_data())
+    assert dset.get_data() == [OrderedDict([('alice', '1'), ('bob', '1'), ('charlie', '10'), ('dave', 'foo'), ('foo', 1), ('bar', 0), ('fighter', 0)]),
+                               OrderedDict([('alice', '2'), ('bob', '2'), ('charlie', '20'), ('dave', 'bar'), ('foo', 0), ('bar', 1), ('fighter', 0)]),
+                               OrderedDict([('alice', '3'), ('bob', '4'), ('charlie', '50'), ('dave', 'fighter'), ('foo', 0), ('bar', 0), ('fighter', 2)])]
+
+class TestConfig(unittest.TestCase):
+    def test_one_hot_encode2(self):
+        #*** Test column name collision protection:
+        dset = dataset_module.DataSet(logger)
+        dset.ingest('data/test/test1.csv')
+        dset.translate('dave', {'foo': 'alice'})
+        key_values = OrderedDict([('alice', 1), ('bar', 1), ('fighter', 2)])
+        with self.assertRaises(SystemExit):
+            dset.one_hot_encode('dave', key_values)
+
 def test_shuffle():
     """
     Test the shuffle method, setting random seed for predictable test result

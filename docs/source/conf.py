@@ -22,10 +22,6 @@ import sys
 # sys.path.insert(0, os.path.abspath('../..'))
 sys.path.insert(0, os.path.abspath('../../amle'))
 
-#import mock
-
-#MOCK_MODULES = ['yaml']
-
 # -- General configuration ------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.

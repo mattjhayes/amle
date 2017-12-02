@@ -26,4 +26,4 @@ It is built to the following (aspirational) principles:
 * Visibility. Make it easy to understand how experiments are
   running / ran (TBD)
 
-Documentation may one day be available on `Read the Docs <http://amle.readthedocs.io/>`_
+Documentation may one day be available on `Read the Docs <http://amle.readthedocs.io/en/master/>`_

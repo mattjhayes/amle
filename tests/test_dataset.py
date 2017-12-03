@@ -64,6 +64,19 @@ def test_duplicate_column():
                                OrderedDict([('alice', '2'), ('bob', '2'), ('charlie', '20'), ('dave', 'bar'), ('eve', '2')]),
                                OrderedDict([('alice', '3'), ('bob', '4'), ('charlie', '50'), ('dave', 'fighter'), ('eve', '3')])]
 
+def test_delete_columns():
+    """
+    Test the delete_columns method
+    """
+    dset = dataset_module.DataSet(logger)
+    dset.ingest('data/test/test1.csv')
+    dset.delete_columns(['bob', 'dave'])
+    logger.info("get_data=%s", dset.get_data())
+    assert dset.get_data() == [OrderedDict([('alice', '1'), ('charlie', '10')]),
+                               OrderedDict([('alice', '2'), ('charlie', '20')]),
+                               OrderedDict([('alice', '3'), ('charlie', '50')])]
+
+
 def test_rescale():
     """
     Test the rescale method
@@ -92,15 +105,15 @@ def test_one_hot_encode():
     """
     Test the one_hot_encode method
     """
-    #*** Test standard one hot encoding but with one match value set to two instead of one:
+    #*** Test standard one hot encoding:
     dset = dataset_module.DataSet(logger)
     dset.ingest('data/test/test1.csv')
-    key_values = OrderedDict([('foo', 1), ('bar', 1), ('fighter', 2)])
-    dset.one_hot_encode('dave', key_values)
+    keys = ['foo', 'bar', 'fighter']
+    dset.one_hot_encode('dave', keys)
     logger.info("get_data=%s", dset.get_data())
     assert dset.get_data() == [OrderedDict([('alice', '1'), ('bob', '1'), ('charlie', '10'), ('dave', 'foo'), ('foo', 1), ('bar', 0), ('fighter', 0)]),
                                OrderedDict([('alice', '2'), ('bob', '2'), ('charlie', '20'), ('dave', 'bar'), ('foo', 0), ('bar', 1), ('fighter', 0)]),
-                               OrderedDict([('alice', '3'), ('bob', '4'), ('charlie', '50'), ('dave', 'fighter'), ('foo', 0), ('bar', 0), ('fighter', 2)])]
+                               OrderedDict([('alice', '3'), ('bob', '4'), ('charlie', '50'), ('dave', 'fighter'), ('foo', 0), ('bar', 0), ('fighter', 1)])]
 
 class TestConfig(unittest.TestCase):
     def test_one_hot_encode2(self):
@@ -108,9 +121,9 @@ class TestConfig(unittest.TestCase):
         dset = dataset_module.DataSet(logger)
         dset.ingest('data/test/test1.csv')
         dset.translate('dave', {'foo': 'alice'})
-        key_values = OrderedDict([('alice', 1), ('bar', 1), ('fighter', 2)])
+        keys = ['alice', 'bar', 'fighter']
         with self.assertRaises(SystemExit):
-            dset.one_hot_encode('dave', key_values)
+            dset.one_hot_encode('dave', keys)
 
 def test_shuffle():
     """

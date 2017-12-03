@@ -74,14 +74,16 @@ DATASET_SCHEMA = Schema({
                         Required('transform'): list
                         })
 TRANSFORM_SCHEMA = Schema([{
-                        Optional('trim_to_rows'): list,
-                        Optional('trim_to_columns'): list,
-                        Optional('rescale'): list,
-                        Optional('translate'): list,
-                        Optional('set_output_columns'): list,
+                        Optional('delete_columns'): list,
                         Optional('display'): str,
+                        Optional('one_hot_encode'): list,
+                        Optional('partition'): list,
+                        Optional('rescale'): list,
+                        Optional('set_output_columns'): list,
                         Optional('shuffle'): int,
-                        Optional('partition'): list
+                        Optional('translate'): list,
+                        Optional('trim_to_columns'): list,
+                        Optional('trim_to_rows'): list
                         }
                         ])
 

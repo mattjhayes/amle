@@ -11,21 +11,15 @@ Column Operations
 
 Here are operations that can be performed on the dataset columns:
 
-set_output_columns
-==================
+delete_columns
+==============
 
-Sets what columns are used as output data from dataset
-(i.e. what columns contain the expected answer(s)
-Pass it a list of output column names
+TBD
 
-  Example:
+duplicate_column
+================
 
-  .. code-block:: text
-
-    - set_output_columns:
-        - Iris-setosa
-        - Iris-versicolor
-        - Iris-virginica
+TBD
 
 one_hot_encode
 ==============
@@ -48,6 +42,122 @@ Be careful to avoid column name collisions.
         - one_hot_encode:
             - column: class
             - values:
-                Iris-setosa: 1
-                Iris-versicolor: 1
-                Iris-virginica: 1
+                - Iris-setosa
+                - Iris-versicolor
+                - Iris-virginica
+
+rescale
+=======
+
+set_output_columns
+==================
+
+Sets what columns are used as output data from dataset
+(i.e. what columns contain the expected answer(s)
+Pass it a list of output column names
+
+  Example:
+
+  .. code-block:: text
+
+    - set_output_columns:
+        - Iris-setosa
+        - Iris-versicolor
+        - Iris-virginica
+
+translate
+=========
+
+TBD
+
+trim_to_columns
+===============
+
+TBD
+
+***********
+Data Import
+***********
+
+ingest
+======
+
+TBD
+
+***********
+Data Export
+***********
+
+get_data
+========
+
+TBD
+
+inputs_array
+============
+
+TBD
+
+outputs_array
+============
+
+TBD
+
+*******
+General
+*******
+
+set_name
+========
+
+TBD
+
+transform
+=========
+
+TBD
+
+
+************
+Partitioning
+************
+
+in_partition
+============
+
+TBD
+
+partition
+============
+
+TBD
+
+partition_sets
+============
+
+TBD
+
+**************
+Row Operations
+**************
+
+shuffle
+=======
+
+TBD
+
+trim_to_rows
+============
+
+TBD
+
+**********
+Visibility
+**********
+
+display
+=======
+
+TBD
+
+

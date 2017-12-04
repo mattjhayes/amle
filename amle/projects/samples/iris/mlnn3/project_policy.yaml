@@ -1,0 +1,85 @@
+---
+#*** Configuration policy for Automated Machine Learning Environment (AMLE).
+#*** Simple ML Traffic Classification Test
+#
+#*** Written in YAML
+#
+amle_syntax_version: 1
+#
+datasets:
+    - name: training_dataset
+      source:
+          file: data/samples/Iris_flower_data_set/Iris_flower_data_set.csv
+      transform:
+        - rescale:
+            - column: sepal-length
+              min: 4.3
+              max: 7.9
+            - column: sepal-width
+              min: 2
+              max: 4.4
+            - column: petal-length
+              min: 1
+              max: 6.9
+            - column: petal-width
+              min: 0.1
+              max: 2.5
+        - one_hot_encode:
+            - column: class
+            - values:
+                - Iris-setosa
+                - Iris-versicolor
+                - Iris-virginica
+        - set_output_columns:
+            - Iris-setosa
+            - Iris-versicolor
+            - Iris-virginica
+        - delete_columns:
+            - class
+        - shuffle: 1
+        - partition:
+            - Training
+            - Training
+            - Training
+            - Validation
+        - display: print
+#
+algorithms:
+    # Testing algorithms to load:
+    - name: ANN_simple_2_layer
+      location: algorithms/samples/mlnn/mlnn3
+#
+aggregators:
+    # Algorithms that run experiments and aggregate results
+    - name: cross_validator_1
+      location: aggregators/samples/cross_validator_1/cross_validator_1
+#
+experiments:
+    - name: experiment_1
+      algorithm:
+          name: ANN_simple_2_layer
+          parameters:
+              input_neurons: 1
+              input_variables: 4
+              random_seed: 1
+              random_seed: 1
+              layers_config:
+                - inputs: 4
+                  neurons: 3
+                  name: hidden_layer
+                - inputs: 3
+                  neurons: 3
+                  name: output_layer
+#
+run:
+    - name: run_experiment_1
+      aggregator:
+          name: cross_validator_1
+          parameters:
+              experiment: experiment_1
+              dataset: training_dataset
+              iterations: 60000
+              partions_number: 4
+              result_range: 2
+              result_threshold: 0.1
+

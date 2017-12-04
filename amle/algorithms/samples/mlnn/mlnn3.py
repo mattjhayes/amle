@@ -155,6 +155,14 @@ class NeuralNetwork(object):
         Train the neural network, running a number of training
         iterations (epochs) and adjusting synaptic weights each time
         """
+        #*** Sanity check that number of outputs equals output neurons:
+        if self.layers[-1].neurons != outputs.shape[1]:
+            self.logger.critical("Number of output neurons (%s) not equal to"
+                                    " number of outputs (%s)",
+                                    self.layers[-1].neurons,
+                                    outputs.shape[1])
+            self.logger.critical("Please fix error in project_policy.yaml")
+            sys.exit()
         for iteration in xrange(iterations):
             output_layer = 1
             #*** Pass the training input set through the neural network:
@@ -166,16 +174,20 @@ class NeuralNetwork(object):
                 if output_layer:
                     #*** Special case for output layer:
                     layer_error = outputs - layer_outputs[index]
+                    #self.logger.debug("layer_error=\n%s", layer_error)
                     output_layer = 0
                 else:
                     layer_error = layer_delta.dot(prev_synaptic_weights.T)
 
                 #*** Calculate the gradient for error correction:
                 layer_delta = layer_error * sigmoid_derivative(layer_outputs[index])
+                #self.logger.debug("layer_delta=\n%s", layer_delta)
 
                 #*** Calculate weight adjustment for the layer:
                 if index > 0:
+                    #self.logger.debug("layer_outputs[index - 1]=\n%s", layer_outputs[index - 1])
                     layer_adjustment = layer_outputs[index - 1].T.dot(layer_delta)
+                    #self.logger.debug("layer_adjustment=\n%s", layer_adjustment)
                 else:
                     #*** Special case for first layer, use inputs:
                     layer_adjustment = inputs.T.dot(layer_delta)
@@ -184,6 +196,8 @@ class NeuralNetwork(object):
                 prev_synaptic_weights = copy.copy(layer.synaptic_weights)
 
                 #*** Adjust the layer weights:
+                #self.logger.debug("%s layer.synaptic_weights=\n%s", self.name, layer.synaptic_weights)
+                #self.logger.debug("layer_adjustment=\n%s", layer_adjustment)
                 layer.synaptic_weights += layer_adjustment
 
     def feed_forward(self, inputs):
@@ -223,6 +237,8 @@ class NeuralLayer(object):
     def __init__(self, logger, inputs, neurons, name):
         self.synaptic_weights = 2 * random.random((inputs, neurons)) - 1
         logger.debug("%s synaptic_weights=\n%s", name, self.synaptic_weights)
+        self.inputs = inputs
+        self.neurons = neurons
         self.name = name
 
 #=========================== Supporting Functions =============================

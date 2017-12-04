@@ -8,12 +8,18 @@ AMLE
 
 AMLE (Automated Machine Learning Environment) is designed to help
 automate running machine learning (ML) tests to reduce effort and
-make it easier to innovate.
+make it easier to innovate. `Read More <userguide/introduction.html>`_
+
+Contents:
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+   :maxdepth: 3
 
+   userguide/introduction
+   userguide/configure
+   userguide/recipes
+   userguide/install
+   modules
 
 
 Indices and tables

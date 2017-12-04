@@ -65,6 +65,32 @@ class DataSet(object):
         self.logger.debug("Setting output_columns=%s", output_columns)
         self._output_columns = output_columns
 
+    def one_hot_encode(self, column_name, keys):
+        """
+        Take an existing column and use it to build new columns
+        that are each one hot encoded for one of the specified keys.
+
+        Supplied with the column_name string and a list that has
+        the specific key names to build new columns.
+        """
+        self.logger.debug("One hot encoding column_name=%s", column_name)
+        #*** Sanity check on input:
+        assert isinstance(keys, list)
+        result = []
+        for row in self._data:
+            #*** Create new column data for the nominated keys:
+            for key in keys:
+                #*** Sanity check new column name does not collide:
+                if key in row:
+                    self.logger.critical("Column name collision key=%s", key)
+                    sys.exit()
+                if row[column_name] == key:
+                    row[key] = 1
+                else:
+                    row[key] = 0
+            result.append(row)
+        self._data = result
+
     def duplicate_column(self, current_column_name, new_column_name):
         """
         Passed name of a current column and copy that column to a new
@@ -74,6 +100,16 @@ class DataSet(object):
                                           current_column_name, new_column_name)
         for row in self._data:
             row[new_column_name] = row[current_column_name]
+
+    def delete_columns(self, column_names):
+        """
+        Passed a list of columns and remove them from
+        the dataset
+        """
+        self.logger.debug("Deleting column_names=%s", column_names)
+        for row in self._data:
+            for column_name in column_names:
+                row.pop(column_name)
 
     def set_name(self, name):
         """
@@ -130,6 +166,8 @@ class DataSet(object):
                         self.trim_to_rows(key, row[key])
             elif 'trim_to_columns' in tform:
                 self.trim_to_columns(tform['trim_to_columns'])
+            elif 'delete_columns' in tform:
+                self.delete_columns(tform['delete_columns'])
             elif 'rescale' in tform:
                 for rdict in tform['rescale']:
                     self.rescale(rdict['column'], rdict['min'], rdict['max'])
@@ -139,13 +177,18 @@ class DataSet(object):
             elif 'set_output_columns' in tform:
                 self.set_output_columns(tform['set_output_columns'])
             elif 'duplicate_column' in tform:
-                self.duplicate_column(tform['duplicate_column'])
+                rlist = tform['translate']
+                self.duplicate_column(rlist[0]['current_column_name'],
+                                                   rlist[1]['new_column_name'])
             elif 'shuffle' in tform:
                 self.shuffle(seed=tform['shuffle'])
             elif 'partition' in tform:
                 self.partition(tform['partition'])
             elif 'display' in tform:
                 self.display(tform['display'])
+            elif 'one_hot_encode' in tform:
+                rlist = tform['one_hot_encode']
+                self.one_hot_encode(rlist[0]['column'], rlist[1]['values'])
             else:
                 self.logger.critical("Unsupported transform=%s, exiting...",
                                                                          tform)

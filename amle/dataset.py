@@ -69,7 +69,7 @@ class DataSet(object):
         """
         Take an existing column and use it to build new columns
         that are each one hot encoded for one of the specified keys.
-        
+
         Supplied with the column_name string and a list that has
         the specific key names to build new columns.
         """
@@ -177,7 +177,9 @@ class DataSet(object):
             elif 'set_output_columns' in tform:
                 self.set_output_columns(tform['set_output_columns'])
             elif 'duplicate_column' in tform:
-                self.duplicate_column(tform['duplicate_column'])
+                rlist = tform['translate']
+                self.duplicate_column(rlist[0]['current_column_name'],
+                                                   rlist[1]['new_column_name'])
             elif 'shuffle' in tform:
                 self.shuffle(seed=tform['shuffle'])
             elif 'partition' in tform:

@@ -1,13 +1,12 @@
-amle
-====
+Modules
+=======
 
 .. toctree::
    :maxdepth: 4
 
-   aggregators
-   algorithms
    amle
    baseclass
+   evaluate
    config
    dataset
    policy

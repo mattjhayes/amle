@@ -31,16 +31,21 @@ datasets:
 algorithms:
     # ML Algorithms to load
     - name: ANN_simple_2_layer
-      location: algorithms/examples/mlnn/mlnn
+      location: algorithms/examples/mlnn/mlnn4
 #
 experiments:
     - name: experiment_1
       algorithm:
           name: ANN_simple_2_layer
           parameters:
-              input_neurons: 4
-              input_variables: 3
               random_seed: 1
+              layers_config:
+                - inputs: 4
+                  neurons: 3
+                  name: hidden_layer
+                - inputs: 3
+                  neurons: 1
+                  name: output_layer
           methods:
             - train:
                   parameters:

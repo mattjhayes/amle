@@ -135,8 +135,7 @@ class DataSet(object):
         Load data CSV from file into class as
         a list of dictionaries of rows. Requires first row in
         file to be a header row and uses these values as keys
-        in row dictionaries. Example row:
-        {'dataset': 'ML', 'min_interpacket_interval': '0.001'}
+        in row dictionaries
         """
         self._data = []
         working_directory = os.path.dirname(__file__)
@@ -144,7 +143,8 @@ class DataSet(object):
         if os.path.isfile(fullpathname):
             self.logger.info("Ingesting file=%s", fullpathname)
         else:
-            self.logger.critical("Dataset=%s not found, exiting", fullpathname)
+            self.logger.critical("Dataset=%s not found", fullpathname)
+            self.logger.critical("Please fix error in project_policy.yaml")
             sys.exit()
         with open(fullpathname) as filehandle:
             reader = csv.DictReader(filehandle)

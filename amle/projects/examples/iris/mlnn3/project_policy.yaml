@@ -9,7 +9,7 @@ amle_syntax_version: 1
 datasets:
     - name: training_dataset
       source:
-          file: data/samples/Iris_flower_data_set/Iris_flower_data_set.csv
+          file: data/examples/Iris_flower_data_set/Iris_flower_data_set.csv
       transform:
         - rescale:
             - column: sepal-length
@@ -47,12 +47,12 @@ datasets:
 algorithms:
     # Testing algorithms to load:
     - name: ANN_simple_2_layer
-      location: algorithms/samples/mlnn/mlnn3
+      location: algorithms/examples/mlnn/mlnn3
 #
 aggregators:
     # Algorithms that run experiments and aggregate results
     - name: cross_validator_1
-      location: aggregators/samples/cross_validator_1/cross_validator_1
+      location: aggregators/examples/cross_validator_1/cross_validator_1
 #
 experiments:
     - name: experiment_1

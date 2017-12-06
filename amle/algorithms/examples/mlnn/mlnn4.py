@@ -207,6 +207,9 @@ class NeuralNetwork(object):
         """
         results = []
         for layer in self.layers:
+            #*** append bias as extra input:
+            inputs.append(layer.bias)
+            
             outputs = sigmoid(dot(inputs, layer.synaptic_weights))
             results.append(outputs)
             inputs = outputs

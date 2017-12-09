@@ -33,6 +33,11 @@ algorithms:
     - name: ANN_simple_2_layer
       location: algorithms/examples/mlnn/mlnn4
 #
+aggregators:
+    # Algorithms that run experiments and aggregate results
+    - name: cross_validator_1
+      location: aggregators/examples/cross_validator_1/cross_validator_1
+#
 experiments:
     - name: experiment_1
       algorithm:
@@ -41,23 +46,21 @@ experiments:
               random_seed: 1
               layers_config:
                 - inputs: 3
-                  neurons: 2
+                  neurons: 4
                   name: hidden_layer
-                - inputs: 2
+                - inputs: 4
                   neurons: 1
                   name: output_layer
-          methods:
-            - train:
-                  parameters:
-                      dataset: training_dataset
-                      partition: Training
-                      iterations: 60000
-            - test:
-                  parameters:
-                      dataset: training_dataset
-                      partition: Validation
 #
 run:
     - name: run_experiment_1
-      experiment: experiment_1
+      aggregator:
+          name: cross_validator_1
+          parameters:
+              experiment: experiment_1
+              dataset: training_dataset
+              iterations: 60000
+              partions_number: 4
+              result_range: 1
+              result_threshold: 0.1
     

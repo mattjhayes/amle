@@ -197,7 +197,7 @@ class NeuralNetwork(object):
                     layer_output = layer_outputs[index + 1]
                 else:
                     #*** Remove bias from outputs:
-                    layer_output = np.delete(layer_outputs[index + 1], layer_outputs[index + 1].shape[1]-1, axis=1)
+                    layer_output = remove_bias(layer_outputs[index + 1], axis='column')
 
                 #*** Squash the output and multiply by the error:
                 layer_error_squashed = layer_error * sigmoid_derivative(layer_output)
@@ -210,7 +210,7 @@ class NeuralNetwork(object):
                     layer_adjustment = layer_outputs[0].T.dot(layer_error_squashed)
 
                 #*** Copies for use in next iteration (bias removed from synaptic weights):
-                prev_synaptic_weights = np.delete(layer.synaptic_weights, layer.synaptic_weights.shape[0]-1, axis=0)
+                prev_synaptic_weights = remove_bias(layer.synaptic_weights, axis='row')
                 prev_layer_error_squashed = copy.copy(layer_error_squashed)
 
                 #*** Adjust the layer weights:
@@ -323,4 +323,19 @@ def add_bias(array_, bias):
         #*** append bias as extra input column to 2-D array:
         bias_array = np.ones((array_.shape[0], bias), dtype=array_.dtype)
         result = np.append(array_, bias_array, axis=1)
+    return result
+
+def remove_bias(array_, axis='column'):
+    """
+    Remove bias column or row from an array.
+    Pass it an array (1-D or 2-D) and a bias value to fill
+    Returns array with bias removed (either as column on the right
+    or row on bottom)
+    """
+    if axis == 'column':
+        result = np.delete(array_, array_.shape[1]-1, axis=1)
+    elif axis == 'row':
+        result = np.delete(array_, array_.shape[0]-1, axis=0)
+    else:
+        sys.exit("Error in axis value passed to remove_bias. Exiting")
     return result

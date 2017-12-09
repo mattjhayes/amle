@@ -47,7 +47,7 @@ datasets:
 algorithms:
     # Testing algorithms to load:
     - name: ANN_simple_2_layer
-      location: algorithms/examples/mlnn/mlnn
+      location: algorithms/examples/mlnn/mlnn4
 #
 aggregators:
     # Algorithms that run experiments and aggregate results
@@ -59,9 +59,14 @@ experiments:
       algorithm:
           name: ANN_simple_2_layer
           parameters:
-              input_neurons: 3
-              input_variables: 6
               random_seed: 1
+              layers_config:
+                - inputs: 6
+                  neurons: 4
+                  name: hidden_layer
+                - inputs: 4
+                  neurons: 1
+                  name: output_layer
 #
 run:
     - name: run_experiment_1

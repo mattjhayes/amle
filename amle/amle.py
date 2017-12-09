@@ -206,9 +206,6 @@ class AMLE(BaseClass):
         self.logger.debug("pol_agg=%s", pol_agg)
         #*** Start experiment:
         name = agg_parameters['experiment']
-        #      dataset: training_dataset
-        #      iterations: 60000
-        #      partions_number: 4
         self.logger.debug("Initialising algorithm for name=%s", name)
         pol_experiment = self.policy.get_experiment(name)
         alg_name = pol_experiment['algorithm']['name']

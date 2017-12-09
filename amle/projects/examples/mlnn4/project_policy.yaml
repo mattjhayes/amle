@@ -40,10 +40,10 @@ experiments:
           parameters:
               random_seed: 1
               layers_config:
-                - inputs: 4
-                  neurons: 3
-                  name: hidden_layer
                 - inputs: 3
+                  neurons: 2
+                  name: hidden_layer
+                - inputs: 2
                   neurons: 1
                   name: output_layer
           methods:

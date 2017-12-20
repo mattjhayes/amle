@@ -237,6 +237,7 @@ class NeuralNetwork(object):
             pd_errors_wrt_output_neuron_total_net_input[o] = self.output_layer.neurons[o].calculate_pd_error_wrt_total_net_input(training_outputs[o])
 
         # 2. Hidden neuron deltas
+        #*** Create a list with a zero value for each hidden layer neuron:
         pd_errors_wrt_hidden_neuron_total_net_input = [0] * len(self.hidden_layer.neurons)
         for h in range(len(self.hidden_layer.neurons)):
 

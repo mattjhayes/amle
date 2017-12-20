@@ -1,0 +1,66 @@
+---
+#*** Configuration policy for Automated Machine Learning Environment (AMLE).
+#
+#*** Simple ML Example based on blog post by Milo Spencer-Harper
+# (https://medium.com/technology-invention-and-more/how-to-build-a-multi-layered-neural-network-in-python-53ec3d1d326a)
+#
+#*** Written in YAML
+#
+amle_syntax_version: 1
+#
+datasets:
+    - name: training_dataset
+      source:
+          file: data/examples/mlnn/miloharper_data_set.csv
+      transform:
+        # Set which column(s) hold the results:
+        - set_output_columns:
+            - output
+        # Partition between training and validation data:
+        - partition:
+            - Training
+            - Training
+            - Training
+            - Training
+            - Training
+            - Training
+            - Training
+            - Validation
+        - display: print
+#
+algorithms:
+    # ML Algorithms to load
+    - name: ANN_simple_2_layer
+      location: algorithms/examples/mlnn/mlnn5
+#
+aggregators:
+    # Algorithms that run experiments and aggregate results
+    - name: cross_validator_1
+      location: aggregators/examples/cross_validator_1/cross_validator_1
+#
+experiments:
+    - name: experiment_1
+      algorithm:
+          name: ANN_simple_2_layer
+          parameters:
+              random_seed: 1
+              layers_config:
+                - inputs: 3
+                  neurons: 4
+                  name: hidden_layer
+                - inputs: 4
+                  neurons: 1
+                  name: output_layer
+#
+run:
+    - name: run_experiment_1
+      aggregator:
+          name: cross_validator_1
+          parameters:
+              experiment: experiment_1
+              dataset: training_dataset
+              iterations: 60000
+              partions_number: 4
+              result_range: 1
+              result_threshold: 0.1
+    

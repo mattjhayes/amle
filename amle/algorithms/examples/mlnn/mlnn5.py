@@ -107,11 +107,13 @@ class NeuralNetwork(object):
     """
     Represents a neural network
     """
-    def __init__(self, logger):
+    def __init__(self, logger, learning_rate=0.5):
         """
         Initialise the neural network
         """
         self.logger = logger
+        # Learning rate for backpropagation weight adjustments:
+        self.learning_rate = learning_rate
         #*** Holds classes representing neural layers
         self.layers = []
         #*** Name string for debug etc:
@@ -211,30 +213,11 @@ class NeuralNetwork(object):
                     layer.weight_adjustments = layer_outputs[index].T.dot \
                                                                    (node_delta)
                 else:
-                    # Use error from previous layer:
-                    #self.logger.info("%s index=%s prev_node_delta=%s prev_synaptic_weights=%s",
-                    #            layer.name, index, prev_node_delta, prev_synaptic_weights)
-                                
-                    # Sum the prev_node_delta
-                    #prev_error_wrt_net = np.sum(prev_node_delta, axis=0) * prev_synaptic_weights
-                    #self.logger.info("%s index=%s prev_error_wrt_net=%s", layer.name, index, prev_error_wrt_net)
-                    
-                    #prev_error_wrt_net = (layer_outputs[out_index+1] - layer_outputs[out_index+2]) \
-                    #                                  * layer_outputs[out_index+2] * (1 - layer_outputs[out_index+2])
-
-                    # Sum rows to get total error for layer 1 (this is required
-                    # for intermediate layers as error propogates to multiple
-                    # neurons in higher layer)
-                    #error_wrt_output = np.sum(prev_error_wrt_net, axis=1)
-
-
-                    # New 20171218, combines calc prev_error_wrt_net with error_wrt_output:
+                    # Sum rows to get total error for this layer (required
+                    # for intermediate layers, as error propogates to multiple
+                    # neurons in higher (closer to output) layer). Additionally
+                    # multiply by synaptic weights of the higher layer:
                     error_wrt_output = prev_node_delta.dot(prev_synaptic_weights.T)
-                    #self.logger.info("%s index=%s error_wrt_output=%s", layer.name, index, error_wrt_output)
-
-                    # Remove bias as it is not an output we adjust:
-                    #error_wrt_output = bias_remove(error_wrt_output)
-                    #self.logger.info("%s index=%s bias removed error_wrt_output=%s", layer.name, index, error_wrt_output)
 
                     # outputs with respect to total net inputs:
                     # out . (1 - out)
@@ -257,14 +240,11 @@ class NeuralNetwork(object):
                 # Synaptic weights with bias removed for next iteration:
                 prev_synaptic_weights = bias_remove(layer.synaptic_weights,
                                                                     axis='row')
-                
 
             #*** Adjust the layer weights:
-            # TBD: parameterise:
-            learning_rate = 0.5
             for layer in self.layers:
                 # Arbitrary learning rate, using one from example:
-                layer.synaptic_weights -= learning_rate * layer.weight_adjustments
+                layer.synaptic_weights -= self.learning_rate * layer.weight_adjustments
 
     def feed_forward(self, inputs):
         """

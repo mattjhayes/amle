@@ -37,3 +37,27 @@ def test_loss_mse():
     test_result = mlnn5_module.loss_mse(target, actual)
     
     assert np.array_equal(test_result, expected_result)
+
+def test_sigmoid():
+    """
+    Test the sigmoid function
+    """
+    assert mlnn5_module.sigmoid(0) == 0.5
+
+def test_sigmoid_derivative():
+    """
+    Test the sigmoid_derivative function
+    """
+    assert mlnn5_module.sigmoid_derivative(0) == 0.25
+
+def test_tanh():
+    """
+    Test the tanh function
+    """
+    assert mlnn5_module.tanh(0) == 0
+
+def test_tanh_derivative():
+    """
+    Test the tanh_derivative function
+    """
+    assert mlnn5_module.tanh_derivative(0) == 1

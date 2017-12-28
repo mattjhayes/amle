@@ -334,10 +334,29 @@ def sigmoid(x):
 def sigmoid_derivative(x):
     """
     The derivative of the Sigmoid function.
-    This is the gradient of the Sigmoid curve.
-    It indicates how confident we are about the existing weight.
+    This is the gradient of the Sigmoid curve at a given location
     """
-    return x * (1 - x)
+    #return x * (1 - x)
+    return sigmoid(x)*(1-sigmoid(x))
+
+def tanh(x):
+    """
+    The Tanh function, which describes an S shaped curve.
+    We pass the weighted sum of the inputs through this function to
+    normalise them between -1 and 1. Uses numpy module.
+    """
+    return np.tanh(x)
+
+def tanh_derivative(x):
+    """
+    The derivative of the Tanh function.
+    This is the gradient of the Tanh curve at a given location
+    """
+    return 1.0 - np.tanh(x)**2
+
+#            'ReLU':  x * (x > 0)
+#                     x > 0
+
 
 #======================= Bias Helper Functions ================================
 

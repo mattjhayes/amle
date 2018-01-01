@@ -44,6 +44,13 @@ def test_sigmoid():
     """
     assert mlnn5_module.sigmoid(0) == 0.5
 
+def test_sigmoid_derivative_simple():
+    """
+    Test the sigmoid_derivative_simple function
+    """
+    sigmoid_0 = mlnn5_module.sigmoid(0)
+    assert mlnn5_module.sigmoid_derivative_simple(sigmoid_0) == 0.25
+
 def test_sigmoid_derivative():
     """
     Test the sigmoid_derivative function
@@ -61,3 +68,22 @@ def test_tanh_derivative():
     Test the tanh_derivative function
     """
     assert mlnn5_module.tanh_derivative(0) == 1
+
+def test_relu():
+    """
+    Test the relu function
+    """
+    assert mlnn5_module.relu(-1) == 0
+    assert mlnn5_module.relu(0) == 0
+    assert mlnn5_module.relu(1) == 1
+    assert mlnn5_module.relu(2) == 2
+
+def test_relu_derivative():
+    """
+    Test the relu_derivative function
+    """
+    assert mlnn5_module.relu_derivative(-1) == 0
+    assert mlnn5_module.relu_derivative(0) == 0
+    assert mlnn5_module.relu_derivative(1) == 1
+    assert mlnn5_module.relu_derivative(2) == 1
+    

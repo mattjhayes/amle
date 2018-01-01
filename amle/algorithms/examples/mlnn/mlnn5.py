@@ -331,13 +331,23 @@ def sigmoid(x):
     """
     return 1 / (1 + np.exp(-x))
 
+def sigmoid_derivative_simple(sigmoid_x):
+    """
+    The derivative of the Sigmoid function, where already have sigmoid
+    of x and hence less work effort to calculate the derivative.
+    This is the gradient of the Sigmoid curve at a given location
+    """
+    return sigmoid_x * (1 - sigmoid_x)
+
 def sigmoid_derivative(x):
     """
     The derivative of the Sigmoid function.
+    Calls the sigmoid function to get sigmoid value and uses this
+    to calculate the derivative.
     This is the gradient of the Sigmoid curve at a given location
     """
-    #return x * (1 - x)
-    return sigmoid(x)*(1-sigmoid(x))
+    sigmoid_x = sigmoid(x)
+    return sigmoid_x * (1 - sigmoid_x)
 
 def tanh(x):
     """
@@ -354,9 +364,19 @@ def tanh_derivative(x):
     """
     return 1.0 - np.tanh(x)**2
 
-#            'ReLU':  x * (x > 0)
-#                     x > 0
+def relu(x):
+    """
+    The ReLU function, which is a rectifier that outputs 0 for non-positive
+    values or the original value
+    """
+    return  x * (x > 0)
 
+def relu_derivative(x):
+    """
+    The derivative of the ReLU function.
+    This is the gradient of the ReLU at a given location
+    """
+    return x > 0
 
 #======================= Bias Helper Functions ================================
 
